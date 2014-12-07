@@ -99,8 +99,8 @@
     :db.install/_attribute :db.part/db
     :db/id #db/id[:db.part/db]}
 
-   {:db/id #db/id [:db.part/user]
-    :db/ident :parmenides.resolution/continuous
+   {:db/ident :parmenides.resolution/continuous
+    :db/id #db/id [:db.part/user]
     :db/fn #db/fn {:lang "clojure"
                    :params [conn]
                    :requires [[clojure.core.async :refer [go-loop]]
@@ -110,9 +110,10 @@
                              (seq (:tx-data (.poll queue)))
                              (println "Got Data")))}}])
 
-(defn continous-resolution [conn]
-  (-> conn
-      d/db
-      (d/entity :parmenides.resolution/continuous)
-      :db/fn
-      (.invoke conn)))
+(defn continous-resolution
+  "Given a datomic connection, this will automatically fire the resolution
+  process every time new datoms are put into the database and update
+  accordingly."
+  [conn] ;;N.B. The actual work is done by the database function
+  (-> conn d/db (d/entity :parmenides.resolution/continuous)
+      :db/fn (.invoke conn)))
