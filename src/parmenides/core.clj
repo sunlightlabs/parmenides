@@ -2,7 +2,6 @@
   (:require [datomic.api :as d]))
 
 (defn clarify-datom [db datom]
-  (println datom)
   [(.e datom) (:db/ident (d/touch (d/entity db (.a datom))))
    (.v datom) (.tx datom) (.added datom)])
 
@@ -11,7 +10,8 @@
 (def requires
   '[[datomic.api :as d]
     [clojure.core.async :refer [chan go-loop >! <! <!! >!!]]
-    [parmenides.core :refer [fndb clarify-datom]]])
+    [parmenides.core :refer [fndb clarify-datom]]
+    [clojure.pprint :refer [pprint]]])
 
 (defmacro defndb [name params & body]
   `(identity
@@ -119,35 +119,32 @@
     :db/id #db/id[:db.part/db]}
 
    (defndb :parmenides.resolve/transaction [conn resolutions datoms]
-     (println "Testing transaction")
-     (println (map (partial clarify-datom (d/db conn)) (:tx-data datoms)))
+     (pprint (map (partial clarify-datom (d/db conn)) (:tx-data datoms)))
      (>!! resolutions :resolved))
 
    (defndb :parmenides.resolve/continuously [conn]
-     (let [tx-reports (chan)
-           resolutions (chan)
+     (let [tx-reports (chan) resolutions (chan)
            thread
            (Thread. #(let [queue (d/tx-report-queue conn)]
-                       (println "Started creeping")
                        (go-loop []
-                         (println "Creeping")
                          (>! tx-reports (.take queue))
-                         (println "Put value!"))))]
+                         (recur))))]
+
        (.setUncaughtExceptionHandler
         thread
         (reify Thread$UncaughtExceptionHandler
           (uncaughtException [_ thread throwable]
             (.printStackTrace throwable))))
+
        (.start thread)
 
-       (go-loop []
-         (println "Transaction resolving")
-         ((fndb (d/db conn) :parmenides.resolve/transaction)
-          conn resolutions (<! tx-reports))
-         (println "Test")
-         (recur))
-
-       [resolutions thread]))])
+       {:resolutions resolutions
+        :thread      thread
+        :transactions->resolve
+        (go-loop []
+          ((fndb (d/db conn) :parmenides.resolve/transaction)
+           conn resolutions (<! tx-reports))
+          (recur))}))])
 
 (defn continous-resolution
   "Given a datomic connection, this will automatically fire the

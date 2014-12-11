@@ -11,6 +11,8 @@
    [clojure.core.async :refer [close! <!!]]
    ))
 
+(alter-var-root (var clojure.pprint/*print-right-margin*) (constantly 140))
+
 ;; Taken from simple-expectations
 ;; https://github.com/jaycfields/simple-expectations/blob/master/test/simple_expectations/core_test.clj
 (defrecord SimpleCheck []
@@ -55,31 +57,36 @@
 
 (defn simple-test-first [n]
   (let [conn (get-fresh-conn)
-        [resolutions thread] (continous-resolution conn)]
+        {:keys [resolutions thread transactions->resolve]}
+        (continous-resolution conn)
+        datoms
+        (vec (repeatedly n #(hash-map :test/id 1
+                                      :db/id (d/tempid :db.part/user)
+                                      :parmenides.record/type :test/record)))]
+    (doseq [datum datoms]
+      (d/transact conn [datum]))
+    (println (count datoms))
 
-    (println "Starting simple test")
-    @(d/transact
-      conn
-      (vec (repeatedly n #(hash-map :test/id 1
-                                    :db/id (d/tempid :db.part/user)
-                                    :parmenides.record/type :test/record))))
+    (dotimes [i n] (println i)
+             (<!! resolutions))
 
     (.stop thread)
-    (println "Blocking on resolutions")
-    (println "Test" (<!! resolutions))
-    (println "Resolved!")
+    (close! transactions->resolve)
+    (close! resolutions)
+
     (and (= n (count (d/q '[:find ?e
                             :where [?e :test/id ?v]]
                           (db conn))))
          (= 1 (count (d/q '[:find ?e
                             :where [?e :parmenides.being/id ?v]]
-                          (db conn)))))
+                         (db conn)))))
     ))
 
-(expect checked (tc/quick-check 10 (prop/for-all [n gen/nat] (simple-test-first n) )))
+(expect checked (tc/quick-check 10 (prop/for-all [n gen/nat] (simple-test-first n))))
 
 
-(simple-test-first 1)
+(simple-test-first 0)
+
 
 
 
