@@ -50,13 +50,6 @@
     conn))
 
 
-#_(->>
-   :tx-data
-   seq
-   (map (partial  clarify-datom (d/db conn)))
-   count
-   println)
-
 (let [dbc (d/db (get-fresh-conn))]
   (map (partial clarify-datom dbc) (seq (d/datoms dbc :eavt))))
 
@@ -83,7 +76,7 @@
                           (db conn)))))
     ))
 
-                                        ;(expect checked (tc/quick-check 10 (prop/for-all [n gen/nat] (simple-test-first n) )))
+(expect checked (tc/quick-check 10 (prop/for-all [n gen/nat] (simple-test-first n) )))
 
 
 (simple-test-first 1)

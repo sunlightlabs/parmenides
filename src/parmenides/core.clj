@@ -1,6 +1,27 @@
 (ns parmenides.core
   (:require [datomic.api :as d]))
 
+(defn clarify-datom [db datom]
+  (println datom)
+  [(.e datom) (:db/ident (d/touch (d/entity db (.a datom))))
+   (.v datom) (.tx datom) (.added datom)])
+
+(defn fndb [db k] (:db/fn (d/entity db k)))
+
+(def requires
+  '[[datomic.api :as d]
+    [clojure.core.async :refer [chan go-loop >! <! <!! >!!]]
+    [parmenides.core :refer [fndb clarify-datom]]])
+
+(defmacro defndb [name params & body]
+  `(identity
+    {:db/ident ~name
+     :db/id (d/tempid :db.part/user)
+     :db/fn (datomic.function/construct {:lang "clojure"
+                                         :params '~params
+                                         :requires '~requires
+                                         :code '(do ~@body)})}))
+
 (def parmenides-attributes
   [{:db/ident :parmenides.record/type
     :db/valueType :db.type/ref
@@ -97,64 +118,40 @@
     :db.install/_attribute :db.part/db
     :db/id #db/id[:db.part/db]}
 
-   {:db/ident :parmenides.resolve/transaction
-    :db/id #db/id [:db.part/user]
-    :db/fn #db/fn {:lang "clojure"
-                   :params [conn datoms]
-                   :requires [[datomic.api :as d]
-                              [parmenides.core :refer [clarify-datom]]]
-                   :code (do
-                           (println "Testing transaction")
-                           (println (map (partial clarify-datom (d/db conn)) (:tx-data datoms))))}}
+   (defndb :parmenides.resolve/transaction [conn resolutions datoms]
+     (println "Testing transaction")
+     (println (map (partial clarify-datom (d/db conn)) (:tx-data datoms)))
+     (>!! resolutions :resolved))
 
-;;   (??? :parmenides.resolution/continuous [conn] [])
-   {:db/ident :parmenides.resolve/continuously
-    :db/id #db/id [:db.part/user]
-    :db/fn #db/fn {:lang "clojure"
-                   :params [conn]
-                   :requires [[datomic.api :as d]
-                              [clojure.core.async :refer [chan go-loop >! <!]]
-                              [parmenides.core :refer [fndb]]]
-                   :code (let [c (chan)
-                               thread
-                               (Thread. #(let [queue (d/tx-report-queue conn)]
-                                           (println "Started creeping")
-                                           (go-loop []
-                                             (println "Creeping")
-                                             (>! c (.take queue))
-                                             (println "Put value!"))))]
-                           (.setUncaughtExceptionHandler
-                            thread
-                            (reify Thread$UncaughtExceptionHandler
-                              (uncaughtException [_ thread throwable]
-                                (.printStackTrace throwable))))
-                           (.start thread)
+   (defndb :parmenides.resolve/continuously [conn]
+     (let [tx-reports (chan)
+           resolutions (chan)
+           thread
+           (Thread. #(let [queue (d/tx-report-queue conn)]
+                       (println "Started creeping")
+                       (go-loop []
+                         (println "Creeping")
+                         (>! tx-reports (.take queue))
+                         (println "Put value!"))))]
+       (.setUncaughtExceptionHandler
+        thread
+        (reify Thread$UncaughtExceptionHandler
+          (uncaughtException [_ thread throwable]
+            (.printStackTrace throwable))))
+       (.start thread)
 
-                           (go-loop []
-                             (println "Transaction resolving")
-                             ((fndb (d/db conn) :parmenides.resolve/transaction)
-                              conn (<! c))
-                             (println "Test")
-                             (recur))
+       (go-loop []
+         (println "Transaction resolving")
+         ((fndb (d/db conn) :parmenides.resolve/transaction)
+          conn resolutions (<! tx-reports))
+         (println "Test")
+         (recur))
 
-                           [c thread]
-                           )}}])
-
-
-
-(defmacro defndb [name params body]
-  )
-
-(defn clarify-datom [db datom]
-  (println datom)
-  [(.e datom) (:db/ident (d/touch (d/entity db (.a datom))))
-   (.v datom) (.tx datom) (.added datom)])
-
-(defn fndb [db k] (:db/fn (d/entity db k)))
+       [resolutions thread]))])
 
 (defn continous-resolution
   "Given a datomic connection, this will automatically fire the
   resolution process every time new datoms are put into the database
   and update accordingly."
-  [conn] ;;N.B. The actual work is done by the database function
+  [conn]
   ((fndb (d/db conn) :parmenides.resolve/continuously) conn))
