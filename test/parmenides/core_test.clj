@@ -1,12 +1,32 @@
 (ns parmenides.core-test
-  (:require [clojure.test :refer :all]
-            [parmenides.core :refer :all]
-            [clojure.test.check :as tc]
-            [clojure.test.check.generators :as gen]
-            [clojure.test.check.properties :as prop]
-            [clojure.test.check.clojure-test :as ct :refer (defspec)]
-            [datomic.api :as d :refer [db q]]))
+  (:use expectations)
+  (:require ;[clojure.test :refer :all]
+   [expectations :refer :all]
+   [parmenides.core :refer :all]
+   [clojure.test.check :as tc]
+   [clojure.test.check.generators :as gen]
+   [clojure.test.check.properties :as prop]
+   [clojure.test.check.clojure-test :as ct :refer (defspec)]
+   [datomic.api :as d :refer [db q]]
+   [clojure.core.async :refer [close! <!!]]
+   ))
 
+;; Taken from simple-expectations
+;; https://github.com/jaycfields/simple-expectations/blob/master/test/simple_expectations/core_test.clj
+(defrecord SimpleCheck []
+  CustomPred
+  (expect-fn [e a] (:result a))
+  (expected-message [e a str-e str-a] (format "%s of %s failures"
+                                              (:failing-size a)
+                                              (:num-tests a)))
+  (actual-message [e a str-e str-a] (format "fail: %s" (:fail a)))
+  (message [e a str-e str-a] (format "shrunk: %s" (get-in a [:shrunk :smallest]))))
+
+(def checked (->SimpleCheck))
+
+;;
+
+(expect checked (tc/quick-check 100 (prop/for-all [v (gen/vector gen/int)] true)))
 
 (def test-attributes
   [{:db/id #db/id[:db.part/db]
@@ -14,41 +34,60 @@
     :db/valueType :db.type/long
     :db/cardinality :db.cardinality/one
     :db.install/_attribute :db.part/db
-    ;:parmenides/ownership :parmenides/individual
-    ;:parmenides/reliable true
-    ;:parmenides/multiplicity :parmendies/one
+                                        ;:parmenides/ownership :parmenides/individual
+                                        ;:parmenides/reliable true
+                                        ;:parmenides/multiplicity :parmendies/one
     }
    {:db/ident :test/record :db/id #db/id[:db.part/user]}])
 
 
-(defn get-fresh-conn [s]
-  (let [url (str "datomic:mem://parmenides" s)
+(defn get-fresh-conn []
+  (let [url (str "datomic:mem://parmenides"  (d/squuid))
         conn (do (d/create-database url)
                  (d/connect url))]
-    (d/transact conn parmenides-attributes)
-    (d/transact conn test-attributes)
+    @(d/transact conn parmenides-attributes)
+    @(d/transact conn test-attributes)
     conn))
 
-(defspec simple-test
-  1
-  (prop/for-all
-   [n gen/nat
-    random-postfix (gen/such-that #(< 2 (count %)) gen/string-alpha-numeric)]
 
-   (let [conn (get-fresh-conn random-postfix)
-         datoms (repeatedly n #(hash-map :test/id 1
-                                         :db/id (d/tempid :db.part/user)
-                                         :parmenides/record-type :test/record))]
-     (continous-resolution conn)
-     (d/transact conn datoms)
-     (is (= n (count (d/q '[:find ?e
+#_(->>
+   :tx-data
+   seq
+   (map (partial  clarify-datom (d/db conn)))
+   count
+   println)
+
+(let [dbc (d/db (get-fresh-conn))]
+  (map (partial clarify-datom dbc) (seq (d/datoms dbc :eavt))))
+
+(defn simple-test-first [n]
+  (let [conn (get-fresh-conn)
+        [resolutions thread] (continous-resolution conn)]
+
+    (println "Starting simple test")
+    @(d/transact
+      conn
+      (vec (repeatedly n #(hash-map :test/id 1
+                                    :db/id (d/tempid :db.part/user)
+                                    :parmenides.record/type :test/record))))
+
+    (.stop thread)
+    (println "Blocking on resolutions")
+    (println "Test" (<!! resolutions))
+    (println "Resolved!")
+    (and (= n (count (d/q '[:find ?e
                             :where [?e :test/id ?v]]
-                          (db conn)))))
-     (is (= 1 (count (d/q '[:find ?e
+                          (db conn))))
+         (= 1 (count (d/q '[:find ?e
                             :where [?e :parmenides.being/id ?v]]
                           (db conn)))))
+    ))
+
+                                        ;(expect checked (tc/quick-check 10 (prop/for-all [n gen/nat] (simple-test-first n) )))
 
 
-     )))
+(simple-test-first 1)
 
-(run-tests)
+
+
+                                        ;(run-tests)

@@ -1,8 +1,6 @@
 (ns parmenides.core
   (:require [datomic.api :as d]))
 
-
-
 (def parmenides-attributes
   [{:db/ident :parmenides.record/type
     :db/valueType :db.type/ref
@@ -86,7 +84,7 @@
     :db.install/_attribute :db.part/db
     :db/id #db/id[:db.part/db]}
 
-   ;;; Built in attributes that are handled as special cases
+;;; Built in attributes that are handled as special cases
    {:db/ident :parmenides.person/name
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
@@ -99,21 +97,64 @@
     :db.install/_attribute :db.part/db
     :db/id #db/id[:db.part/db]}
 
-   {:db/ident :parmenides.resolution/continuous
+   {:db/ident :parmenides.resolve/transaction
+    :db/id #db/id [:db.part/user]
+    :db/fn #db/fn {:lang "clojure"
+                   :params [conn datoms]
+                   :requires [[datomic.api :as d]
+                              [parmenides.core :refer [clarify-datom]]]
+                   :code (do
+                           (println "Testing transaction")
+                           (println (map (partial clarify-datom (d/db conn)) (:tx-data datoms))))}}
+
+;;   (??? :parmenides.resolution/continuous [conn] [])
+   {:db/ident :parmenides.resolve/continuously
     :db/id #db/id [:db.part/user]
     :db/fn #db/fn {:lang "clojure"
                    :params [conn]
-                   :requires [[clojure.core.async :refer [go-loop]]
-                              [datomic.api :as d]]
-                   :code (let [queue (d/tx-report-queue conn)]
+                   :requires [[datomic.api :as d]
+                              [clojure.core.async :refer [chan go-loop >! <!]]
+                              [parmenides.core :refer [fndb]]]
+                   :code (let [c (chan)
+                               thread
+                               (Thread. #(let [queue (d/tx-report-queue conn)]
+                                           (println "Started creeping")
+                                           (go-loop []
+                                             (println "Creeping")
+                                             (>! c (.take queue))
+                                             (println "Put value!"))))]
+                           (.setUncaughtExceptionHandler
+                            thread
+                            (reify Thread$UncaughtExceptionHandler
+                              (uncaughtException [_ thread throwable]
+                                (.printStackTrace throwable))))
+                           (.start thread)
+
                            (go-loop []
-                             (seq (:tx-data (.poll queue)))
-                             (println "Got Data")))}}])
+                             (println "Transaction resolving")
+                             ((fndb (d/db conn) :parmenides.resolve/transaction)
+                              conn (<! c))
+                             (println "Test")
+                             (recur))
+
+                           [c thread]
+                           )}}])
+
+
+
+(defmacro defndb [name params body]
+  )
+
+(defn clarify-datom [db datom]
+  (println datom)
+  [(.e datom) (:db/ident (d/touch (d/entity db (.a datom))))
+   (.v datom) (.tx datom) (.added datom)])
+
+(defn fndb [db k] (:db/fn (d/entity db k)))
 
 (defn continous-resolution
-  "Given a datomic connection, this will automatically fire the resolution
-  process every time new datoms are put into the database and update
-  accordingly."
+  "Given a datomic connection, this will automatically fire the
+  resolution process every time new datoms are put into the database
+  and update accordingly."
   [conn] ;;N.B. The actual work is done by the database function
-  (-> conn d/db (d/entity :parmenides.resolution/continuous)
-      :db/fn (.invoke conn)))
+  ((fndb (d/db conn) :parmenides.resolve/continuously) conn))
