@@ -28,7 +28,6 @@
 
 ;;
 
-(expect checked (tc/quick-check 100 (prop/for-all [v (gen/vector gen/int)] true)))
 
 (def test-attributes
   [{:db/id #db/id[:db.part/db]
@@ -56,38 +55,9 @@
   (map (partial clarify-datom dbc) (seq (d/datoms dbc :eavt))))
 
 (defn simple-test-first [n]
-  (let [conn (get-fresh-conn)
-        {:keys [resolutions thread transactions->resolve]}
-        (continous-resolution conn)
-        datoms
-        (vec (repeatedly n #(hash-map :test/id 1
-                                      :db/id (d/tempid :db.part/user)
-                                      :parmenides.record/type :test/record)))]
-    (doseq [datum datoms]
-      (d/transact conn [datum]))
-    (println (count datoms))
+)
 
-    (dotimes [i n] (println i)
-             (<!! resolutions))
-
-    (.stop thread)
-    (close! transactions->resolve)
-    (close! resolutions)
-
-    (and (= n (count (d/q '[:find ?e
-                            :where [?e :test/id ?v]]
-                          (db conn))))
-         (= 1 (count (d/q '[:find ?e
-                            :where [?e :parmenides.being/id ?v]]
-                         (db conn)))))
-    ))
-
-(expect checked (tc/quick-check 10 (prop/for-all [n gen/nat] (simple-test-first n))))
+;(expect checked (tc/quick-check 10 (prop/for-all [n gen/nat] (simple-test-first n))))
 
 
-(simple-test-first 0)
-
-
-
-
-                                        ;(run-tests)
+(simple-test-first 1)

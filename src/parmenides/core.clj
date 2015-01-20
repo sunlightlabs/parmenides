@@ -1,27 +1,6 @@
 (ns parmenides.core
   (:require [datomic.api :as d]))
 
-(defn clarify-datom [db datom]
-  [(.e datom) (:db/ident (d/touch (d/entity db (.a datom))))
-   (.v datom) (.tx datom) (.added datom)])
-
-(defn fndb [db k] (:db/fn (d/entity db k)))
-
-(def requires
-  '[[datomic.api :as d]
-    [clojure.core.async :refer [chan go-loop >! <! <!! >!!]]
-    [parmenides.core :refer [fndb clarify-datom]]
-    [clojure.pprint :refer [pprint]]])
-
-(defmacro defndb [name params & body]
-  `(identity
-    {:db/ident ~name
-     :db/id (d/tempid :db.part/user)
-     :db/fn (datomic.function/construct {:lang "clojure"
-                                         :params '~params
-                                         :requires '~requires
-                                         :code '(do ~@body)})}))
-
 (def parmenides-attributes
   [{:db/ident :parmenides.record/type
     :db/valueType :db.type/ref
@@ -35,7 +14,9 @@
     :db.install/_attribute :db.part/db
     :db/id #db/id[:db.part/db]}
 
-   {:db/ident :parmenides.being/tenuously-connected
+   {:db/ident :parmenides.type/being :db/id #db/id[:db.part/user]}
+
+   {:db/ident :parmenides.being/tenuously_connected
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/one
     :db.install/_attribute :db.part/db
@@ -116,39 +97,4 @@
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
     :db.install/_attribute :db.part/db
-    :db/id #db/id[:db.part/db]}
-
-   (defndb :parmenides.resolve/transaction [conn resolutions datoms]
-     (pprint (map (partial clarify-datom (d/db conn)) (:tx-data datoms)))
-     (>!! resolutions :resolved))
-
-   (defndb :parmenides.resolve/continuously [conn]
-     (let [tx-reports (chan) resolutions (chan)
-           thread
-           (Thread. #(let [queue (d/tx-report-queue conn)]
-                       (go-loop []
-                         (>! tx-reports (.take queue))
-                         (recur))))]
-
-       (.setUncaughtExceptionHandler
-        thread
-        (reify Thread$UncaughtExceptionHandler
-          (uncaughtException [_ thread throwable]
-            (.printStackTrace throwable))))
-
-       (.start thread)
-
-       {:resolutions resolutions
-        :thread      thread
-        :transactions->resolve
-        (go-loop []
-          ((fndb (d/db conn) :parmenides.resolve/transaction)
-           conn resolutions (<! tx-reports))
-          (recur))}))])
-
-(defn continous-resolution
-  "Given a datomic connection, this will automatically fire the
-  resolution process every time new datoms are put into the database
-  and update accordingly."
-  [conn]
-  ((fndb (d/db conn) :parmenides.resolve/continuously) conn))
+    :db/id #db/id[:db.part/db]}])
