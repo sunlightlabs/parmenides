@@ -6,23 +6,31 @@
   :dependencies [;;Basics
                  [org.clojure/clojure "1.7.0-alpha4"]
 
-                 ;;Backend
-                 [aleph "0.4.0-beta1"]
-                 [org.clojure/data.json "0.2.5"]
-                 [instaparse "1.3.5"]
-                 [org.jordanlewis/data.union-find "0.1.0"]
-                 [clj-time "0.7.0"]
-                 [com.taoensso/timbre "3.2.1"]
-                 [com.velisco/herbert "0.6.6"]
-                 [com.datomic/datomic-free "0.9.5130" :exclusions [joda-time]]
+                 ;;Webserver and requests
+                 [aleph "0.4.0-beta1"]           ;;HTTP Server
+                 [ring/ring-defaults "0.1.3"]    ;;Hooks compojure up to
+                                                 ;;aleph (via the ring
+                                                 ;;specification)
+                 [compojure "1.3.1"]             ;;Router
+                 [hiccup "1.0.5"]                ;;HTML generation
+                 [org.clojure/data.json "0.2.5"] ;;Working with JSON
 
-                 ;;Crossover
-                 [bidi "1.12.0"]
+                 ;;Data transformations
+                 [instaparse "1.3.5"]                      ;;General parsing
+                 [org.jordanlewis/data.union-find "0.1.0"] ;;Union-find implementation
+                 [clj-time "0.7.0"]                        ;;Timestamp parsers
 
-                 ;;Frontend
+
+                 ;;Miscellaneous
+                 [com.taoensso/timbre "3.2.1"]         ;;Logging
+                 [com.velisco/herbert "0.6.6"]         ;;Data validation
+                 [com.datomic/datomic-free "0.9.5130"] ;;Data storage
+
+                 ;;Frontend tools
                  [org.clojure/clojurescript "0.0-2511"]
                  [org.om/om "0.8.0"]
+                 [racehub/om-bootstrap "0.3.3"]
                  [datascript "0.8.0"]
-                 [racehub/om-bootstrap "0.3.3"]]
+                 [secretary "1.2.1"]]
   :profiles {:dev {:dependencies [[org.clojure/test.check "0.5.9"]
                                   [expectations "2.0.9"]]}})
