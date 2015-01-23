@@ -4,18 +4,18 @@
     lein_dir: /usr/local/bin/lein
     project_name: parmenides
     project_root: /var/projects/parmenides
-    project_repo: git@github.com:sunlightlabs/parmenides.git
-
+    project_repo: ssh://git@github.com/sunlightlabs/parmenides.git
+    
     datomic_version: "0.9.5130"
     datomic_dir: /var/lib/datomic
     datomic_data_dir: /var/lib/datomic/data
-    datomic_filename: datomic-free-{{ datomic_version }}
+    datomic_filename: datomic-free-{{ datomic_version }}  
 
-  sudo: true
-  
+  sudo: yes 
   tasks:
     - name: Get the tools
       apt: pkg={{ item }} update_cache=yes
+      sudo: yes
       with_items:
         - git
         - openjdk-7-jre-headless
@@ -33,13 +33,13 @@
         - tshark  
         - openjdk-7-jdk  
     
-    - name: Create the project directory.
+    - name: Create the project directory.      
       file: state=directory path={{ project_root }}
     
     - name: Create user.
       user: home={{ project_root }}/home/ name={{ project_name }} state=present
 
-    - name: Project directory permissions.
+    - name: Project directory permissions.      
       file: state=directory path={{ project_root }} owner={{ project_name }} group={{ project_name }}    
 
     - name: Update the project directory.
@@ -47,6 +47,24 @@
     
     - name: Create the code directory.
       file: group={{ project_name }} owner={{ project_name }} mode=755 state=directory path={{ project_root }}/code/
+
+
+    - name: echo
+      shell: ls ~/.ssh
+      register: result
+
+    - debug: var=result
+
+    - name: echo
+      shell: whoami
+      register: result
+
+    - debug: var=result
+
+    - name: Clone parmenides. 
+      git: repo={{ project_repo }} dest={{ project_root }}/code/ accept_hostkey=True
+      
+       
 
     - name: Get leiningen
       get_url: url=https://raw.github.com/technomancy/leiningen/stable/bin/lein dest={{ lein_dir }}
@@ -105,4 +123,5 @@
 
     - name: ensure datomic is running
       service: name=datomic state=started
+
       
