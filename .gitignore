@@ -8,3 +8,4 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 /ansible/files/datomic-free-*.zip             
+/example-data/*
