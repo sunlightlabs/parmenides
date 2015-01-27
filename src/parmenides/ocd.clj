@@ -11,75 +11,86 @@
   (s/both s/Str (s/pred (starts-with? (str "ocd-" pre "/")) 'ocd-format?)))
 
 (def Vote
-  {:bill {:id (ocd-id "bill")
-          :identifier s/Str}
-   :counts [{:option (s/enum "yes" "no" "other")
-             :value  s/Int}]
-   :motion_classification [(s/enum "bill-passage" "amendment-passage")]
-   :organization {:id (ocd-id "organization")
-                  :name s/Str}
-   :created_at s/Str
-   :updated_at s/Str;;valid date format
-   :start_date s/Str
-   :result (s/enum "pass" "fail")
-   :id (ocd-id "vote")
-   :motion_text s/Str
-   :extras {s/Keyword s/Any}})
+  {(s/required-key "bill") {(s/required-key "id") (ocd-id "bill")
+                            (s/required-key "identifier") s/Str}
+   (s/required-key "counts") [{(s/required-key "option") (s/enum "yes" "no" "other")
+                               (s/required-key "value")  s/Int}]
+   (s/required-key "motion_classification") [(s/enum "bill-passage" "amendment-passage")]
+   (s/required-key "organization") {(s/required-key "id") (ocd-id "organization")
+                                    (s/required-key "name") s/Str}
+   (s/required-key "created_at") s/Str
+   (s/required-key "updated_at") s/Str ;;valid date format
+   (s/required-key "start_date") s/Str
+   (s/required-key "result") (s/enum "pass" "fail")
+   (s/required-key "id") (ocd-id "vote")
+   (s/required-key "motion_text") s/Str
+   (s/required-key "extras") s/Any})
 
 (def Jurisdiction
-  {:id (ocd-id "jurisdiction")
-   (s/optional-key :name) s/Str})
+  {(s/required-key "id") (ocd-id "jurisdiction")
+   (s/optional-key "name") s/Str
+
+   (s/optional-key "classification")
+   (s/enum "government" "legislature" "executive" "school" "park" "sewer" "forest" "transit")})
 
 (def Post
-  {:id (ocd-id "post")
-   :label s/Str
-   :role s/Str})
+  {(s/required-key "id") (ocd-id "post")
+   (s/required-key "label") s/Str
+   (s/required-key "role") s/Str})
 
 (def Organization
-  {:name s/Str
-   :id (ocd-id "organization")
+  {(s/required-key "name") s/Str
+   (s/required-key "id") (ocd-id "organization")
 
-   (s/optional-key :image) s/Str
-   (s/optional-key :classification) s/Str
-   (s/optional-key :jurisdiction) (s/maybe (s/recursive #'Jurisdiction))
-   (s/optional-key :parent) (s/maybe (s/recursive #'Organization))})
+   (s/optional-key "image") s/Str
+   (s/optional-key "classification") s/Str
+   (s/optional-key "jurisdiction") (s/maybe (s/recursive #'Jurisdiction))
+   (s/optional-key "parent") (s/maybe (s/recursive #'Organization))})
 
 (def Person
-  {:gender (s/enum "" "Male")
-   :id (ocd-id "person")
-   :image s/Str
-   :memberships [{:organization (s/recursive #'Organization)
-                  :post (s/maybe (s/recursive #'Post))}]
-   :sort_name s/Str
-   :name s/Str})
+  {(s/required-key "gender") (s/enum "" "Male" "Female")
+   (s/required-key "id") (ocd-id "person")
+   (s/required-key "image") s/Str
+   (s/required-key "memberships") [{(s/required-key "organization") (s/recursive #'Organization)
+                                    (s/required-key "post") (s/maybe (s/recursive #'Post))}]
+   (s/required-key "sort_name") s/Str
+   (s/required-key "name") s/Str})
 
 (def Bill
-  {:title s/Str
-   :subject [s/Str]
-   :identifier s/Str
-   :id (ocd-id "bill")
-   :from_organization (s/recursive #'Organization)
-   :classification s/Any
-   (s/optional-key :name) s/Str})
+  {(s/required-key "title") s/Str
+   (s/required-key "subject") [s/Str]
+   (s/required-key "identifier") s/Str
+   (s/required-key "id") (ocd-id "bill")
+   (s/required-key "from_organization") (s/recursive #'Organization)
+   (s/required-key "classification") s/Any
+   (s/optional-key "name") s/Str})
 
 (def Event
-  {:description s/Str
-   :timezone s/Str
-   :name s/Str
-   :start_time s/Str
-   :classification s/Str
-   :end_time (s/maybe s/Str)
-   :agenda [{:description s/Str
-             :order s/Str
-             :related_entities s/Any ;;Is entity an abstract type?
-             :subjects []
-             }]
-   :all_day s/Bool
-   :status (s/enum "confirmed")
-   :id (ocd-id "event")})
+  {(s/required-key "description") s/Str
+   (s/required-key "timezone") s/Str
+   (s/required-key "name") s/Str
+   (s/required-key "start_time") s/Str
+
+   (s/required-key "classification")
+   (s/enum "committee-meeting" "hearings" "floor_time" "redistricting" "special"
+           ;;There are lots of old style classification that is held
+           ;;on by some invalid db's. Waiting for the ocd databases to
+           ;;correct itself and then will remove some old enums.
+           "senate:session" "house:session" "joint:session"
+           "committee:meeting" "committee meeting"
+           "committee:hearing" )
+   (s/required-key "end_time") (s/maybe s/Str)
+   (s/required-key "agenda") [{(s/required-key "description") s/Str
+                               (s/required-key "order") s/Str
+                               (s/required-key "related_entities") s/Any ;;Is entity an abstract type?
+                               (s/required-key "subjects") []}]
+   (s/required-key "all_day") s/Bool
+   (s/required-key "status") (s/enum "confirmed")
+   (s/required-key "id") (ocd-id "event")
+   (s/optional-key "extras") s/Any})
 
 (def OCD
-  (letfn [(p [s] #((starts-with? (str "ocd-" s)) (:id %)))]
+  (letfn [(p [s] #((starts-with? (str "ocd-" s)) (% "id")))]
     (s/conditional
      (p "person") Person
      (p "vote")   Vote

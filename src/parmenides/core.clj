@@ -6,7 +6,7 @@
             [aleph.http :as http]
             [schema.core :as s]
             [parmenides.ocd :refer [OCD]]
-            [clojure.data.json :refer [read-json]
+            [clojure.data.json :refer [read-str]
                                         ;[clojure.java.shell :refer [sh]]
              ]))
 
@@ -18,7 +18,7 @@
     (let [filename (str "example-data/"(str (d/squuid)))]
       (spit filename (slurp body))
       (println filename)))
-  (let [{data :data apikey :apikey} (read-json (slurp body))]
+  (let [{data "data" apikey "apikey"} (read-str (slurp body))]
     (println apikey)
     (swap! last-requests concat data)))
 
