@@ -1,9 +1,7 @@
 (ns parmenides.ocd
   (:require [schema.core :as s]
             [schema-contrib.core :as sc]
-            [instaparse.core :as insta]
-            [instaparse.combinators :refer :all])
-  (:import [instaparse.core Parser]))
+            [instaparse.core :as insta]))
 
 (defn starts-with?
   "A combinator that takes a string and returns a function which

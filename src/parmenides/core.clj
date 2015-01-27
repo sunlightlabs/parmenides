@@ -10,6 +10,7 @@
                                         ;[clojure.java.shell :refer [sh]]
              ]))
 
+
 (def last-requests (atom []))
 
 (defn ingest [{body :body params :params}]
@@ -22,13 +23,12 @@
     (println apikey)
     (swap! last-requests concat data)))
 
-(declare server)
-
 (defroutes app
   (GET "/index.html" [] "test")
   (POST "/ingest" request (ingest request) "HELLO PAULTAG SHALL WE PLAY A GAME?\n")
   (route/not-found "OH SNAP SON"))
 
+(declare server)
 (when (bound? (var server)) (.close server))
 
 (def server (http/start-server (wrap-defaults app api-defaults) {:port 80}))
