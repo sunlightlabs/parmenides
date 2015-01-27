@@ -19,12 +19,15 @@
                  [instaparse "1.3.5"]                      ;;General parsing
                  [org.jordanlewis/data.union-find "0.1.0"] ;;Union-find implementation
                  [clj-time "0.7.0"]                        ;;Timestamp parsers
-
+                 [prismatic/schema "0.3.3"]
+                 [schema-contrib "0.1.3"]
 
                  ;;Miscellaneous
                  [com.taoensso/timbre "3.2.1"]         ;;Logging
                  [com.velisco/herbert "0.6.6"]         ;;Data validation
-                 [com.datomic/datomic-free "0.9.5130"] ;;Data storage
+
+                 ;;Data storage
+                 [com.datomic/datomic-free "0.9.5130" :exclusions [joda-time]]
 
                  ;;Frontend tools
                  [org.clojure/clojurescript "0.0-2511"]
