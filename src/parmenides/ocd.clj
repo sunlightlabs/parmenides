@@ -29,7 +29,8 @@
                  '({:tag :nt, :keyword :date}
                    {:tag :opt,
                     :parser {:tag :cat, :parsers
-                             ({:tag :string, :string " "} {:tag :nt, :keyword :time})}})})
+                             ({:tag :string, :string " "}
+                              {:tag :nt, :keyword :time})}})})
       (assoc :start-production :ocd-underspecified)))
 
 (def date? (comp not insta/failure? date-parser))
@@ -39,12 +40,15 @@
 
 (declare Organization Bill Vote Person Event Post Jurisdiction)
 
+(def Image (s/either sc/URI (s/enum "") sc/URI-Reference s/Str))
+
 (def Organization
   {(s/required-key "name") s/Str
    (s/required-key "id") (Id "organization")
 
-   (s/optional-key "image") s/Str
-   (s/optional-key "classification") s/Str
+   (s/optional-key "image") Image
+   (s/optional-key "classification")
+   (s/enum "party" "committee" "lower" "upper" "legislature" "executive")
    (s/optional-key "jurisdiction") (s/maybe (s/recursive #'Jurisdiction))
    (s/optional-key "parent") (s/maybe (s/recursive #'Organization))})
 
@@ -59,7 +63,8 @@
    (s/optional-key "classification")
    [(s/enum "bill" "resolution" "concurrent resolution" "joint resolution"
             "memorial" "proposed bill" "contract" "appropriation"
-            "constitutional amendment" "nomination" "appointment" "commemoration")]})
+            "constitutional amendment" "nomination" "appointment" "commemoration"
+            "joint memorial")]})
 
 (def Vote
   {(s/required-key "id") (Id "vote")
@@ -86,6 +91,7 @@
   {(s/required-key "id") (Id "jurisdiction")
 
    (s/optional-key "name") s/Str
+
    (s/optional-key "classification")
    (s/enum "government" "legislature" "executive" "school" "park" "sewer" "forest" "transit")})
 
@@ -98,7 +104,7 @@
 (def Person
   {(s/required-key "gender") (s/enum "" "Male" "Female")
    (s/required-key "id") (Id "person")
-   (s/required-key "image") s/Str
+   (s/required-key "image") Image
    (s/required-key "memberships") [{(s/required-key "organization") (s/recursive #'Organization)
                                     (s/required-key "post") (s/maybe (s/recursive #'Post))}]
    (s/required-key "sort_name") s/Str
@@ -106,9 +112,9 @@
 
 (def Event
   {(s/required-key "description") s/Str
-   (s/required-key "timezone") s/Str
+   (s/required-key "timezone") s/Str ;;todo check for timezones?
    (s/required-key "name") s/Str
-   (s/required-key "start_time")  Date
+   (s/required-key "start_time") Date
 
    (s/required-key "classification")
    (s/enum "committee-meeting" "hearings" "floor_time" "redistricting" "special"
@@ -121,7 +127,12 @@
    (s/required-key "end_time") (s/maybe s/Str)
    (s/required-key "agenda") [{(s/required-key "description") s/Str
                                (s/required-key "order") s/Str
-                               (s/required-key "related_entities") s/Any ;;Is entity an abstract type?
+                               (s/required-key "related_entities")
+                               [{(s/required-key "note") (s/maybe s/Str)
+                                 (s/required-key "entity_type")
+                                 (s/enum "bill" "organization" "person")
+                                 (s/required-key "entity_id") (s/maybe (Id "")) ;;Hack
+                                 (s/required-key "entity_name") s/Str}]
                                (s/required-key "subjects") []}]
    (s/required-key "all_day") s/Bool
    (s/required-key "status") (s/enum "confirmed")
