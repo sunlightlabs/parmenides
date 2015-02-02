@@ -7,10 +7,15 @@
             [schema.core :as s]
             [parmenides.ocd :refer [OCD]]
             [clojure.data.json :refer [read-str]]
-            [taoensso.timbre :as timbre]))
+            [taoensso.timbre :as timbre]
+            [parmenides.util :as util]))
+
+;(d/create-database util/uri)
+
 (timbre/refer-timbre)
 
 (def last-requests (atom []))
+
 (defn ingest [{body :body params :params}]
   (info "recieved file")
   (let [body (slurp body)]

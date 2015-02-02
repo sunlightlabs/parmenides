@@ -24,7 +24,7 @@
 
                  ;;Miscellaneous
                  [com.taoensso/timbre "3.2.1"]         ;;Logging
-                 [com.velisco/herbert "0.6.6"]         ;;Data validation
+                 [org.clojure/tools.analyzer.jvm "0.6.5"]
 
                  ;;Data storage
                  [com.datomic/datomic-free "0.9.5130" :exclusions [joda-time]]

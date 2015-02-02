@@ -7,7 +7,7 @@
 
    {:db/ident :parmenides.record/represents
     :db/valueType :db.type/ref
-    :db/cardinality :db.cardinality/one
+    :db/cardinality :db.crardinality/one
     :db.install/_attribute :db.part/db
     :db/id #db/id[:db.part/db]}
 
