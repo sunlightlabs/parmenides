@@ -35,36 +35,35 @@
     
     - name: Create the project directory.      
       file: state=directory path={{ project_root }}
+      
+    # - name: Create user.
+    #   user: home={{ project_root }}/home/ name={{ project_name }} state=present
+
+    #- name: Project directory permissions.      
+      #file: state=directory path={{ project_root }} # group={{ project_name }} owner={{ project_name }}
+
+    # - name: Update the project directory.
+    #   file: group={{ project_name }} owner={{ project_name }} mode=755 state=directory path={{ project_root }}
     
-    - name: Create user.
-      user: home={{ project_root }}/home/ name={{ project_name }} state=present
-
-    - name: Project directory permissions.      
-      file: state=directory path={{ project_root }} owner={{ project_name }} group={{ project_name }}    
-
-    - name: Update the project directory.
-      file: group={{ project_name }} owner={{ project_name }} mode=755 state=directory path={{ project_root }}
-    
-    - name: Create the code directory.
-      file: group={{ project_name }} owner={{ project_name }} mode=755 state=directory path={{ project_root }}/code/
+    # - name: Create the code directory.
+    #   file: group={{ project_name }} owner={{ project_name }} mode=755 state=directory path={{ project_root }}/code/
 
 
-    - name: echo
-      shell: ls ~/.ssh
-      register: result
+    # - name: echo
+    #   shell: ls ~/.ssh
+    #   register: result
 
-    - debug: var=result
+    # - debug: var=result
 
-    - name: echo
-      shell: whoami
-      register: result
+    # - name: echo
+    #   shell: whoami
+    #   register: result
 
-    - debug: var=result
+    # - debug: var=result
 
     - name: Clone parmenides. 
-      git: repo={{ project_repo }} dest={{ project_root }}/code/ accept_hostkey=True
-      
-       
+      git: repo={{ project_repo }} dest={{ project_root }} accept_hostkey=True
+             
 
     - name: Get leiningen
       get_url: url=https://raw.github.com/technomancy/leiningen/stable/bin/lein dest={{ lein_dir }}
@@ -74,8 +73,8 @@
     # - name: Upload web app upstart config file
     #   copy: src=files/{{ project_name }}-upstart.conf dest=/etc/init/{{ project_name }}.conf
       
-    - name: Make app log directory
-      file: state=directory path=/var/log/{{ project_name }} owner={{ project_name }} group={{ project_name }}
+    # - name: Make app log directory
+    #   file: state=directory path=/var/log/{{ project_name }} owner={{ project_name }} group={{ project_name }}
         
   
     - name: Create datomic user.
