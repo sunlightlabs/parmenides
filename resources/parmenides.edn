@@ -1,0 +1,2 @@
+{:uri "datomic:mem://testes"
+ :ephemeral? true}
