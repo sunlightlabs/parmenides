@@ -1,13 +1,15 @@
 import requests
 import os.path
+import json
 
-url="http://ec2-54-174-143-132.compute-1.amazonaws.com/"
+url="http://127.0.0.1:3000"
+headers = {'content-type': 'application/json'}
 
-if not os.path.isfile("apikey.txt"):
-    data = {"email" :  "zmaril@sunlightfoundation.com",
-            "return-address" : "nowhere"}
-    r = requests.post(url+"register", params=data)
-    print(r)
-    open("apikey.txt","w").write(r.apikey).close()
+if not os.path.isfile("creds.txt"):
+    registration = {"dataset_name" :  "Zack's Practice Set",
+                    "dataset_endpoint" : "localhost:3001"}
+    r = requests.post(url+"/register", data=json.dumps(registration), headers=headers)
+    print("New registration: "+r.text)
+    open("creds.txt","w").write(r.text)
 
-apikey = open("apikey.txt").read()
+creds = json.loads(open("creds.txt").read())

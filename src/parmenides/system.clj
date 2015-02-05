@@ -141,6 +141,13 @@
     :connection
     (make new-datomic-connection config)))
 
+(defn datomic-schema-components
+  "Compile Bootstrap LESS files to CSS."
+  [system config]
+  (assoc system
+    :schema
+    (new-datomic-schema (io/resource "schema.edn"))))
+
 (defn new-system-map
   [config]
   (apply system-map
@@ -158,6 +165,7 @@
           (bootstrap-less-compiler-components config)
           (datomic-database-components config)
           (datomic-connection-components config)
+          (datomic-schema-components config)
           ))))
 
 (defn new-dependency-map

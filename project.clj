@@ -32,6 +32,7 @@
    [ch.qos.logback/logback-classic "1.0.7" :exclusions [org.slf4j/slf4j-api]]
    ;;Added by hand
    [datascript "0.8.0"]
+   [ring/ring-json "0.3.1"]
    [racehub/om-bootstrap "0.3.3"]
    [juxt.modular/datomic "0.2.1"]
    [instaparse "1.3.5"]
