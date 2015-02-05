@@ -1,0 +1,491 @@
+{
+  "foreign_entities": [],
+  "registrant": {
+    "id": "ocd-organization/3a8ec09c-ab0c-11e4-ac4a-22000b5182c6",
+    "extras": {
+      "contact_details_structured": [
+        {
+          "label": "contact address",
+          "type": "address",
+          "parts": [
+            {
+              "label": "address_one",
+              "value": "155 SEAPORT BLVD."
+            },
+            {
+              "label": "address_two",
+              "value": ""
+            },
+            {
+              "label": "city",
+              "value": "BOSTON"
+            },
+            {
+              "label": "state",
+              "value": "MA"
+            },
+            {
+              "label": "zip",
+              "value": "02210"
+            },
+            {
+              "label": "country",
+              "value": "USA"
+            }
+          ],
+          "note": "registrant contact on SOPR LD-1"
+        },
+        {
+          "label": "principal place of business",
+          "type": "address",
+          "parts": [
+            {
+              "label": "city",
+              "value": ""
+            },
+            {
+              "label": "state",
+              "value": ""
+            },
+            {
+              "label": "zip",
+              "value": ""
+            },
+            {
+              "label": "country",
+              "value": ""
+            }
+          ],
+          "note": "registrant contact on SOPR LD-1"
+        }
+      ]
+    },
+    "parent_id": "",
+    "memberships": [],
+    "jurisdiction_id": "",
+    "links": [],
+    "other_names": [],
+    "identifiers": [
+      {
+        "identifier": "32340",
+        "scheme": "LDA/registrant_house_id"
+      },
+      {
+        "identifier": "79610",
+        "scheme": "LDA/registrant_senate_id"
+      }
+    ],
+    "image": "",
+    "classification": "corporation",
+    "name": "FOLEY HOAG LLP",
+    "contact_details": [
+      {
+        "label": "contact address",
+        "value": "155 SEAPORT BLVD.; BOSTON; MA; 02210; USA",
+        "type": "address",
+        "note": "Ms. Allison McCowan"
+      },
+      {
+        "label": "principal place of business",
+        "value": "",
+        "type": "address",
+        "note": "Ms. Allison McCowan"
+      },
+      {
+        "label": "contact phone",
+        "value": "6178321787",
+        "type": "phone",
+        "note": "Ms. Allison McCowan"
+      },
+      {
+        "label": "contact email",
+        "value": "amccowan@foleyhoag.com",
+        "type": "email",
+        "note": "Ms. Allison McCowan"
+      }
+    ],
+    "jurisdiction": "",
+    "founding_date": "",
+    "dissolution_date": ""
+  },
+  "lobbyists": [
+    {
+      "biography": "",
+      "id": "person/3a8ed014-ab0c-11e4-ac4a-22000b5182c6",
+      "birth_date": "",
+      "national_identity": "",
+      "extras": {
+        "lda_covered_official_positions": [
+          {
+            "date_reported": "2009-01-01T00:00:00Z",
+            "covered_official_position": "Staff Director and Chief Counsel, U.S. Senate Labor and",
+            "disclosure_id": "ocd-disclosure/057a3e28-8c5a-4523-9e27-a8d7dcdbd346"
+          }
+        ]
+      },
+      "memberships": [
+        {
+          "post": {
+            "start_date": "2009-01-01T00:00:00Z",
+            "id": "ocd-post/3a8ed2da-ab0c-11e4-ac4a-22000b5182c6",
+            "role": "lobbyist"
+          },
+          "organization": {
+            "id": "ocd-organization/3a8ec09c-ab0c-11e4-ac4a-22000b5182c6",
+            "classification": "corporation",
+            "name": "FOLEY HOAG LLP"
+          }
+        }
+      ],
+      "summary": "",
+      "other_names": [],
+      "death_date": "",
+      "image": "",
+      "gender": "",
+      "links": [],
+      "name": "Nick Littlefield ",
+      "contact_details": [],
+      "identifiers": []
+    },
+    {
+      "biography": "",
+      "id": "person/3a8ed67c-ab0c-11e4-ac4a-22000b5182c6",
+      "birth_date": "",
+      "national_identity": "",
+      "extras": {
+        "lda_covered_official_positions": [
+          {
+            "date_reported": "2009-01-01T00:00:00Z",
+            "covered_official_position": "Human Resource Committee",
+            "disclosure_id": "ocd-disclosure/057a3e28-8c5a-4523-9e27-a8d7dcdbd346"
+          }
+        ]
+      },
+      "memberships": [
+        {
+          "post": {
+            "start_date": "2009-01-01T00:00:00Z",
+            "id": "ocd-post/3a8ed942-ab0c-11e4-ac4a-22000b5182c6",
+            "role": "lobbyist"
+          },
+          "organization": {
+            "id": "ocd-organization/3a8ec09c-ab0c-11e4-ac4a-22000b5182c6",
+            "classification": "corporation",
+            "name": "FOLEY HOAG LLP"
+          }
+        }
+      ],
+      "summary": "",
+      "other_names": [],
+      "death_date": "",
+      "image": "",
+      "gender": "",
+      "links": [],
+      "name": "- - ",
+      "contact_details": [],
+      "identifiers": []
+    },
+    {
+      "biography": "",
+      "id": "person/3a8edcc6-ab0c-11e4-ac4a-22000b5182c6",
+      "birth_date": "",
+      "national_identity": "",
+      "extras": {
+        "lda_covered_official_positions": [
+          {
+            "date_reported": "2009-01-01T00:00:00Z",
+            "covered_official_position": "Congressman Honda Staff; Congressman Becerra Staff",
+            "disclosure_id": "ocd-disclosure/057a3e28-8c5a-4523-9e27-a8d7dcdbd346"
+          }
+        ]
+      },
+      "memberships": [
+        {
+          "post": {
+            "start_date": "2009-01-01T00:00:00Z",
+            "id": "ocd-post/3a8edf82-ab0c-11e4-ac4a-22000b5182c6",
+            "role": "lobbyist"
+          },
+          "organization": {
+            "id": "ocd-organization/3a8ec09c-ab0c-11e4-ac4a-22000b5182c6",
+            "classification": "corporation",
+            "name": "FOLEY HOAG LLP"
+          }
+        }
+      ],
+      "summary": "",
+      "other_names": [],
+      "death_date": "",
+      "image": "",
+      "gender": "",
+      "links": [],
+      "name": "Susie Ahn ",
+      "contact_details": [],
+      "identifiers": []
+    },
+    {
+      "biography": "",
+      "id": "person/3a8ee31a-ab0c-11e4-ac4a-22000b5182c6",
+      "birth_date": "",
+      "national_identity": "",
+      "extras": {
+        "lda_covered_official_positions": []
+      },
+      "memberships": [
+        {
+          "post": {
+            "start_date": "2009-01-01T00:00:00Z",
+            "id": "ocd-post/3a8ee5c2-ab0c-11e4-ac4a-22000b5182c6",
+            "role": "lobbyist"
+          },
+          "organization": {
+            "id": "ocd-organization/3a8ec09c-ab0c-11e4-ac4a-22000b5182c6",
+            "classification": "corporation",
+            "name": "FOLEY HOAG LLP"
+          }
+        }
+      ],
+      "summary": "",
+      "other_names": [],
+      "death_date": "",
+      "image": "",
+      "gender": "",
+      "links": [],
+      "name": "Paul Kim ",
+      "contact_details": [],
+      "identifiers": []
+    }
+  ],
+  "main_contact": {
+    "id": "ocd-person/3a8ec560-ab0c-11e4-ac4a-22000b5182c6",
+    "extras": {
+      "contact_details_structured": []
+    },
+    "parent_id": "",
+    "memberships": [
+      {
+        "post": {
+          "start_date": "2009-01-01T00:00:00Z",
+          "id": "ocd-post/3a8ec862-ab0c-11e4-ac4a-22000b5182c6",
+          "role": "main_contact"
+        },
+        "organization": {
+          "id": "ocd-organization/3a8ec09c-ab0c-11e4-ac4a-22000b5182c6",
+          "classification": "corporation",
+          "name": "FOLEY HOAG LLP"
+        }
+      }
+    ],
+    "jurisdiction_id": "",
+    "links": [],
+    "other_names": [],
+    "identifiers": [],
+    "image": "",
+    "classification": "",
+    "name": "Ms. Allison McCowan",
+    "contact_details": [
+      {
+        "label": "contact phone",
+        "value": "6178321787",
+        "type": "phone",
+        "note": "FOLEY HOAG LLP"
+      },
+      {
+        "label": "contact email",
+        "value": "amccowan@foleyhoag.com",
+        "type": "email",
+        "note": "FOLEY HOAG LLP"
+      }
+    ],
+    "jurisdiction": "",
+    "founding_date": "",
+    "dissolution_date": ""
+  },
+  "client": {
+    "id": "ocd-organization/3a8ecbf0-ab0c-11e4-ac4a-22000b5182c6",
+    "extras": {
+      "contact_details_structured": [
+        {
+          "label": "contact address",
+          "type": "address",
+          "parts": [
+            {
+              "label": "address",
+              "value": "330 John Carlyle Street"
+            },
+            {
+              "label": "city",
+              "value": "Alexandria"
+            },
+            {
+              "label": "state",
+              "value": "VA"
+            },
+            {
+              "label": "zip",
+              "value": "22314"
+            },
+            {
+              "label": "country",
+              "value": "USA"
+            }
+          ],
+          "note": "client contact on SOPR LD-1"
+        },
+        {
+          "label": "principal place of business",
+          "type": "address",
+          "parts": [
+            {
+              "label": "city",
+              "value": ""
+            },
+            {
+              "label": "state",
+              "value": ""
+            },
+            {
+              "label": "zip",
+              "value": ""
+            },
+            {
+              "label": "country",
+              "value": ""
+            }
+          ],
+          "note": "client contact on SOPR LD-1"
+        }
+      ]
+    },
+    "parent_id": "",
+    "memberships": [],
+    "jurisdiction_id": "",
+    "links": [],
+    "other_names": [],
+    "identifiers": [],
+    "image": "",
+    "classification": "",
+    "name": "American Orthotic & Prosthetic Association",
+    "contact_details": [
+      [
+        {
+          "label": "contact address",
+          "value": "330 John Carlyle Street; Alexandria; VA; 22314; USA",
+          "type": "address",
+          "note": "American Orthotic & Prosthetic Association"
+        },
+        {
+          "label": "principal place of business",
+          "value": "",
+          "type": "address",
+          "note": "American Orthotic & Prosthetic Association"
+        }
+      ]
+    ],
+    "jurisdiction": "",
+    "founding_date": "",
+    "dissolution_date": ""
+  },
+  "affiliated_organizations": [],
+  "disclosure": {
+    "registrant": "ocd-organization/3a8ec09c-ab0c-11e4-ac4a-22000b5182c6",
+    "registrant_id": "",
+    "effective_date": "2009-01-01T00:00:00Z",
+    "id": "ocd-disclosure/057a3e28-8c5a-4523-9e27-a8d7dcdbd346",
+    "extras": {
+      "registration_type": {
+        "new_client_for_existing_registrant": true,
+        "new_registrant": false,
+        "is_amendment": false
+      },
+      "registrant": {
+        "signature": {
+          "signature_date": "2009-04-20T00:00:00Z",
+          "signature": "Digitally Signed By: Nick Littlefield, Partner"
+        },
+        "self_employed_individual": false,
+        "general_description": "Law Firm"
+      },
+      "client": {
+        "same_as_registrant": false,
+        "general_description": "Organization to improve patient care"
+      }
+    },
+    "updated_at": null,
+    "authority": "Office of Public Record, US Senate",
+    "authority_id": "ocd-organization/13dfdd58-a8b6-11e4-b6bf-3c970e91567b",
+    "identifiers": [],
+    "created_at": "2015-02-02T18:49:33.834696",
+    "disclosed_events": [
+      {
+        "name": "New Client",
+        "id": "ocd-event/3a8ee9b4-ab0c-11e4-ac4a-22000b5182c6",
+        "timezone": "America/New_York",
+        "agenda": [],
+        "end_time": null,
+        "participants": [
+          {
+            "entity_type": "organization",
+            "name": "FOLEY HOAG LLP",
+            "id": "ocd-organization/3a8ec09c-ab0c-11e4-ac4a-22000b5182c6",
+            "note": "registrant"
+          },
+          {
+            "entity_type": "organization",
+            "name": "American Orthotic & Prosthetic Association",
+            "id": "ocd-organization/3a8ecbf0-ab0c-11e4-ac4a-22000b5182c6",
+            "note": "client"
+          },
+          {
+            "entity_type": "person",
+            "name": "Nick Littlefield ",
+            "id": "person/3a8ed014-ab0c-11e4-ac4a-22000b5182c6",
+            "note": "lobbyist"
+          },
+          {
+            "entity_type": "person",
+            "name": "- - ",
+            "id": "person/3a8ed67c-ab0c-11e4-ac4a-22000b5182c6",
+            "note": "lobbyist"
+          },
+          {
+            "entity_type": "person",
+            "name": "Susie Ahn ",
+            "id": "person/3a8edcc6-ab0c-11e4-ac4a-22000b5182c6",
+            "note": "lobbyist"
+          },
+          {
+            "entity_type": "person",
+            "name": "Paul Kim ",
+            "id": "person/3a8ee31a-ab0c-11e4-ac4a-22000b5182c6",
+            "note": "lobbyist"
+          }
+        ],
+        "all_day": false,
+        "links": "",
+        "start_time": "2009-01-01T00:00:00Z",
+        "media": null,
+        "location": null,
+        "classification": "registration",
+        "description": "",
+        "documents": [
+          {
+            "links": [],
+            "date": "2009-01-01T00:00:00Z",
+            "note": "submitted filing"
+          }
+        ],
+        "status": ""
+      }
+    ],
+    "reporting_period": "",
+    "related_entities": [],
+    "documents": [
+      {
+        "links": [],
+        "date": "2009-01-01T00:00:00Z",
+        "note": "submitted filing"
+      }
+    ]
+  }
+}

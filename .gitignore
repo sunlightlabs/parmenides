@@ -10,3 +10,4 @@ pom.xml.asc
 /ansible/files/datomic-free-*.zip             
 /example-data/*
 creds.txt
+data
