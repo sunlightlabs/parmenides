@@ -14,7 +14,7 @@ if not os.path.isfile("creds.txt"):
     open("creds.txt","w").write(r.text)
 
 creds = json.loads(open("creds.txt").read())
-for f in glob.glob("data/transformed/sopr_html/*/REG/*")[1:2]:
+for f in glob.glob("data/transformed/sopr_html/*/REG/*")[1:10]:
     morsel = {"dataset_id" : creds["dataset_id"],
               "dataset_apikey" : creds["dataset_apikey"],
               "datum": json.loads(open(f).read())}
