@@ -46,28 +46,28 @@
   {:name s/Str
    :id (Id "organization")
 
-   (s/optional-key "image") Image
-   (s/optional-key "classification")
-   (s/enum "party" "committee" "lower" "upper" "legislature" "executive")
-   (s/optional-key "jurisdiction") (s/maybe (s/recursive #'Jurisdiction))
-   (s/optional-key "parent") (s/maybe (s/recursive #'Organization))})
+   (s/optional-key :image) Image
+   (s/optional-key :classification)
+   (s/enum "party" "committee" "lower" "upper" "legislature" "executive" "corporation")
+   (s/optional-key :jursidiction) (s/maybe (s/recursive #'Jurisdiction))
+   (s/optional-key :parent) (s/maybe (s/recursive #'Organization))})
 
 (def Bill
   {:id (Id "bill")
    :identifier s/Str
 
-   (s/optional-key "name") s/Str
-   (s/optional-key "title") s/Str
-   (s/optional-key "subject") [s/Str]
-   (s/optional-key "from_organization") (s/recursive #'Organization)
-   (s/optional-key "classification")
+   (s/optional-key :name) s/Str
+   (s/optional-key :title) s/Str
+   (s/optional-key :subject) [s/Str]
+   (s/optional-key :from_organization) (s/recursive #'Organization)
+   (s/optional-key :classification)
    [(s/enum "bill" "resolution" "concurrent resolution" "joint resolution"
             "memorial" "proposed bill" "contract" "appropriation"
             "constitutional amendment" "nomination" "appointment" "commemoration"
             "joint memorial")]})
 
 (def Vote
-  {:id (Id "vote")
+  {:id (Id :vote)
 
    :created_at Date
    :updated_at Date
@@ -90,15 +90,16 @@
 (def Jurisdiction
   {:id (Id "jurisdiction")
 
-   (s/optional-key "name") s/Str
+   (s/optional-key :name) s/Str
 
-   (s/optional-key "classification")
+   (s/optional-key :classification)
    (s/enum "government" "legislature" "executive" "school" "park" "sewer" "forest" "transit")})
 
 (def Post
   {:id (Id "post")
-   :label s/Str
-   :role s/Str})
+   :start_date Date
+   :role s/Str
+   (s/optional-key :label) s/Str})
 
 
 (def Person
@@ -111,19 +112,25 @@
    :name s/Str})
 
 (def Event
-  {:description s/Str
-   :timezone s/Str ;;todo check for timezones?
+  {:id (Id "event")
    :name s/Str
    :start_time Date
 
-   :classification
-   (s/enum "committee-meeting" "hearings" "floor_time" "redistricting" "special"
-           ;;There are lots of old style classification that is held
-           ;;on by some invalid db's. Waiting for the ocd databases to
-           ;;correct itself and then will remove some old enums.
-           "senate:session" "house:session" "joint:session"
-           "committee:meeting" "committee meeting"
-           "committee:hearing" )
+   :description s/Str
+   :timezone s/Str ;;todo check for timezones?
+   :participants [{:entity_type s/Str
+                   :name s/Str
+                   :id s/Str ;; This should be change to `(Id "")`
+                             ;; after people get the proper identifiers
+                   :note s/Str}]
+   :links (s/either s/Str [])
+   :documents [{:links (s/either s/Str [])
+                :date Date
+                :note s/Str}]
+   :location (s/maybe s/Str)
+   :media (s/maybe s/Num)
+
+   :classification s/Str
    :end_time (s/maybe s/Str)
    :agenda [{(s/required-key "description") s/Str
                                (s/required-key "order") s/Str
@@ -135,12 +142,40 @@
                                  (s/required-key "entity_name") s/Str}]
                                (s/required-key "subjects") []}]
    :all_day s/Bool
-   :status (s/enum "confirmed")
-   :id (Id "event")
-   :extras s/Any})
+   :status (s/enum "confirmed" "")
+
+   (s/optional-key :extras) s/Any})
 
 (def Disclosure
-  {:disclosure s/Any
+  {:disclosure
+   {:disclosed_events [(s/recursive #'Event)]
+    :identifiers [{}]
+    :reporting_period s/Str
+    :authority s/Str
+    :registrant s/Str
+    :effective_date Date
+    :updated_at (s/maybe s/Str)
+    :documents [{:links [s/Str]
+                 :date Date
+                 :note s/Str}]
+    :id (Id "disclosure")
+    :registrant_id s/Str
+    :authority_id s/Str
+    :related_entities [{}]
+    :created_at Date
+    :extras {:registration_type
+             {:is_amendment s/Bool
+              :new_registrant s/Bool
+              :new_client_for_existing_registrant s/Bool}
+             :registrant
+             {:general_description s/Str
+              :self_employed_individual s/Bool
+              :signature
+              {:signature s/Str
+               :signature_date Date}}
+             :client
+             {:general_description s/Str
+              :same_as_registrant s/Bool}}}
    :foreign_entities s/Any
    :registrant s/Any
    :lobbyists s/Any
@@ -149,15 +184,13 @@
    :main_contact
    {:id s/Str
     :name s/Str
-
-    {:role "lobbyist", :id "ocd-post/3f4c36b4-ab0c-11e4-ac4a-22000b5182c6", :start_date "2009-07-15T00:00:00Z"}
     (s/optional-key :identifiers) [s/Str]
     (s/optional-key :jurisdiction) s/Any
     (s/optional-key :dissolution_date) s/Str
     (s/optional-key :classification) (s/enum "")
     (s/optional-key :parent_id) s/Str
     (s/optional-key :memberships)
-    [{:post s/Str, :organization (s/recursive #'Organization)}],
+    [{:post (s/recursive #'Post), :organization (s/recursive #'Organization)}],
     (s/optional-key :sort_name) s/Str
     (s/optional-key :gender) s/Str
     (s/optional-key :jurisdiction_id) s/Any
@@ -182,3 +215,11 @@
      (p "disclosure") Disclosure)))
 
 (def OCD? (s/checker [OCD]))
+
+(do
+  (as-> "data/transformed/sopr_html/2009/REG/385c30ad-ceb5-40df-a3bb-a817aae77dc9.json" $
+        (slurp $)
+        (clojure.data.json/read-str $ :key-fn keyword)
+        (s/validate Disclosure $))
+  (println "success")
+  )
