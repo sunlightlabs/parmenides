@@ -17,7 +17,7 @@
    [schema.core :as s]
    [schema-contrib.core :as sc]
    [datomic.api :as d]
-   [parmenides.ocd :refer [Disclosure]]))
+   [parmenides.ocd :refer [DisclosureReport]]))
 
 
 (defn page [{:keys [templater router cljs-builder]} req]
@@ -48,8 +48,8 @@
 ;;Add in disclosure here
 (def Morsel  {(s/required-key :dataset_apikey) s/Str
               (s/required-key :dataset_id) s/Str
-              (s/optional-key :datum) Disclosure
-              (s/optional-key :data) [Disclosure]})
+              (s/optional-key :datum) DisclosureReport
+              (s/optional-key :data) [DisclosureReport]})
 
 (def Morsel?  (s/checker Morsel))
 

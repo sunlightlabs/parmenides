@@ -34,12 +34,14 @@
    [datascript "0.8.0"]
    [ring/ring-json "0.3.1"]
    [racehub/om-bootstrap "0.3.3"]
-   [juxt.modular/datomic "0.2.1"]
+   [juxt.modular/datomic "0.2.1" :exclusions [com.datomic/datomic-free]]
+   [com.datomic/datomic-free "0.9.5130"]
    [instaparse "1.3.5"]
    [org.jordanlewis/data.union-find "0.1.0"]
    [clj-time "0.7.0"]
    [schema-contrib "0.1.3"]
-   [org.clojure/data.json "0.2.5"]]
+   [org.clojure/data.json "0.2.5"]
+   [org.clojure/math.combinatorics "0.0.8"]]
 
   :main parmenides.main
 
