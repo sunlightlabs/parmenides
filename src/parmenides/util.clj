@@ -44,7 +44,7 @@
     [(.e datom)
      (:db/ident m)
      (if (= (:db/ident (:db/valueType m))  :db.type/ref)
-       (:db/ident (d/pull db '[:db/ident] (.v datom)))
+       (or (:db/ident (d/pull db '[:db/ident] (.v datom))) (.v datom))
        (.v datom))
      (.tx datom)]))
 
