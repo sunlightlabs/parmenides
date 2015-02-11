@@ -1,1 +1,4 @@
 language: clojure
+notifications:
+  slack:
+    secure: TBFGvT/xk1katwUMBTuX48xIOyYGXJT/fq2UJTKQiUUDYbGMQUw+HyEypPNHQS/d8tECYL0IcFOAL1a2MpA9CXupuj6DsCCxH3dYq+UQn3BP7S5By9uK++zAuB41xLJcZ3UBS7vGYIdnZ/Zbv39HU5KKAahXDclZ+OyI2paImOo=
