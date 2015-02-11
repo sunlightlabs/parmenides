@@ -43,7 +43,6 @@
     :db/cardinality :db.cardinality/one
     :db.install/_attribute :db.part/db}
 
-
    {:db/id #db/id[:db.part/db]
     :db/ident :match/cupid
     :db/valueType :db.type/ref
@@ -70,33 +69,35 @@
      (let [id (str (d/squuid))]
        [(merge {:cupid/transform-combinator :identity-combinator
                 :db/id (d/tempid :db.part/user)
-                :cupid/id id}
-               m)
+                :cupid/id id} m)
 
         {:db/id (d/tempid :db.part/db)
          :db/ident (d/invoke db :cupid-id->keyword id)
-
          :db/valueType :db.type/string
          :db/unique :db.unique/identity
          :db/cardinality :db.cardinality/one
          :db.install/_attribute :db.part/db}]))
 
-   (dbfn :flood-ids [db match-key value]
+   (dbfn :propogate-plurality-id [db match-key value]
      (let [match (:db/id (d/entity db [match-key value]))
            ids-records (d/q '[:find ?id ?record
                               :in $ % ?match
                               :where
-                              [?match :match/records ?record]
+                              (affected-records ?match ?record)
                               [?record :soul/id ?id]]
                             db
-                            []
+                            '[[(affected-records ?match ?record)
+                               [?match :match/records ?record]]
+                              [(affected-records ?match ?record)
+                               [?match :match/records ?in-between]
+                               [?new-match :match/records ?in-between]
+                               (affected-records ?new-match ?record)]]
                             match)
            max-id (->> ids-records
                        (group-by first)
                        (apply max-key (comp count val))
                        key)
-           entities  (distinct (map second ids-records))
-           ]
+           entities  (distinct (map second ids-records))]
        (mapv #(vector :db/add % :soul/id max-id) entities)))
 
    (dbfn :expand-match [db cupid-db-id cupid-id value record]
@@ -109,7 +110,8 @@
            new-db (:db-after (d/with db [match]))
            data (vec (concat
                       [match]
-                      (d/invoke new-db :flood-ids new-db  match-key value)))]
+                      (d/invoke new-db :propogate-plurality-id
+                                new-db  match-key value)))]
        data))])
 
 
