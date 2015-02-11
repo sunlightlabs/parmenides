@@ -100,7 +100,6 @@
                            :test/id-1 a
                            :test/id-2 b})
                         ids))
-     (/ 1 0)
      (unleash-the-cupids! conn)
      (= outcome
         (characteristics (d/db conn))))))
