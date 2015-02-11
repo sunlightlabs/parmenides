@@ -3,7 +3,7 @@
   (:require
    [expectations :refer :all]
    [datomic.api :as d :refer [db q]]
-   [parmenides.resolution :refer [attributes]]))
+   [parmenides.resolution :refer [attributes dbfn]]))
 (alter-var-root (var clojure.pprint/*print-right-margin*) (constantly 140))
 
 ;; Taken from simple-expectations
@@ -21,7 +21,8 @@
 
 (def test-attributes
   (let [id-1 (d/tempid :db.part/db)
-        id-2 (d/tempid :db.part/db)]
+        id-2 (d/tempid :db.part/db)
+        fm (dbfn :inc [] inc)]
     [{:db/id id-1
       :db/ident :test/id-1
       :db/valueType :db.type/long
@@ -34,11 +35,12 @@
       :db.install/_attribute :db.part/db}
      [:new-cupid
       {:cupid/description "Match entities based on their id-1 values."
-       :cupid/attributes [id-1]
-       }]
+       :cupid/attributes [id-1]}]
+     fm
      [:new-cupid
       {:cupid/description "Match entities based on their id-1 values."
        :cupid/attributes [id-2]
+       :cupid/transform-combinator (:db/id fm)
        }]]))
 
 (defn get-fresh-conn []
