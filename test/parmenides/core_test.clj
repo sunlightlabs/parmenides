@@ -102,10 +102,8 @@
                         ids))
 
      (unleash-the-cupids! conn)
-     (println outcome)
-     (println (characteristics (d/db conn)))
-     (println)
+     ;(println outcome)
+     ;(println (characteristics (d/db conn)))
+     ;(println)
      (= outcome
         (characteristics (d/db conn))))))
-
-(one-soul-on-two-ids)
