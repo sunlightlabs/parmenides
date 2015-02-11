@@ -1,63 +1,57 @@
-;; (ns parmenides.core-test
-;;   (:use expectations)
-;;   (:require ;[clojure.test :refer :all]
-;;    [expectations :refer :all]
-;;    [parmenides.core :refer :all]
-;;    [clojure.test.check :as tc]
-;;    [clojure.test.check.generators :as gen]
-;;    [clojure.test.check.properties :as prop]
-;;    [clojure.test.check.clojure-test :as ct :refer (defspec)]
-;;    [datomic.api :as d :refer [db q]]
-;;    [clojure.core.async :refer [close! <!!]]
-;;    ))
+(ns parmenides.core-test
+  (:require
+   [clojure.test.check :as tc]
+   [clojure.test.check.generators :as gen]
+   [com.gfredericks.test.chuck.properties :as prop']
+   [clojure.test.check.properties :as prop]
+   [clojure.test.check.clojure-test :as ct :refer (defspec)]
+   [datomic.api :as d :refer [db q]]
+   [parmenides.util-test :refer :all]
+   [parmenides.util :refer :all]
+   [parmenides.resolution :refer [hunt-for-soulmates]]))
 
-;; (alter-var-root (var clojure.pprint/*print-right-margin*) (constantly 140))
+(defn print-db [dbc]
+  (->> (d/datoms dbc :eavt)
+       seq
+       (drop 215)
+       (map (partial pretty-datom dbc))
+       (breakout 1)))
 
-;; ;; Taken from simple-expectations
-;; ;; https://github.com/jaycfields/simple-expectations/blob/master/test/simple_expectations/core_test.clj
-;; (defrecord SimpleCheck []
-;;   CustomPred
-;;   (expect-fn [e a] (:result a))
-;;   (expected-message [e a str-e str-a] (format "%s of %s failures"
-;;                                               (:failing-size a)
-;;                                               (:num-tests a)))
-;;   (actual-message [e a str-e str-a] (format "fail: %s" (:fail a)))
-;;   (message [e a str-e str-a] (format "shrunk: %s" (get-in a [:shrunk :smallest]))))
+(defn number-of-souls [db]
+  (-> (d/q '[:find (count ?soul-id) .
+             :where [_ :soul/id ?soul-id]]
+           db)
+      (or 0))
+  )
 
-;; (def checked (->SimpleCheck))
+(number-of-souls (d/db (get-fresh-conn)))
 
-;; ;;
-
-
-;; (def test-attributes
-;;   [{:db/id #db/id[:db.part/db]
-;;     :db/ident :test/id
-;;     :db/valueType :db.type/long
-;;     :db/cardinality :db.cardinality/one
-;;     :db.install/_attribute :db.part/db
-;;                                         ;:parmenides/ownership :parmenides/individual
-;;                                         ;:parmenides/reliable true
-;;                                         ;:parmenides/multiplicity :parmendies/one
-;;     }
-;;    {:db/ident :test/record :db/id #db/id[:db.part/user]}])
+(defspec zero-entities 1
+  (prop/for-all
+   []
+   (let [conn (get-fresh-conn)]
+     (= 0 (number-of-souls (d/db conn))))))
 
 
-;; (defn get-fresh-conn []
-;;   (let [url (str "datomic:mem://parmenides"  (d/squuid))
-;;         conn (do (d/create-database url)
-;;                  (d/connect url))]
-;;     @(d/transact conn parmenides-attributes)
-;;     @(d/transact conn test-attributes)
-;;     conn))
+(defspec one-entity 10
+  (prop/for-all
+   [id-1 gen/int
+    n (gen/such-that (complement zero?) gen/pos-int)]
+   (let [conn (get-fresh-conn)]
+     @(d/transact conn
+                  (take n (repeatedly (fn [] {:db/id (d/tempid :db.part/user)
+                                              :soul/id (str (d/squuid))
+                                              :test/id-1 id-1}))))
+     @(d/transact conn (hunt-for-soulmates (d/db conn)))
+     (= 1 (number-of-souls (d/db conn))))))
 
+#_(one-entity)
 
-;; (let [dbc (d/db (get-fresh-conn))]
-;;   (map (partial clarify-datom dbc) (seq (d/datoms dbc :eavt))))
-
-;; (defn simple-test-first [n]
-;; )
-
-;; ;(expect checked (tc/quick-check 10 (prop/for-all [n gen/nat] (simple-test-first n))))
-
-
-;; (simple-test-first 1)
+(let [conn (get-fresh-conn)
+      id-1 10
+      n 2]
+  @(d/transact conn
+               (take n (repeatedly (fn [] {:db/id (d/tempid :db.part/user)
+                                           :soul/id (str (d/squuid))
+                                           :test/id-1 id-1}))))
+  (= 1 (number-of-souls (d/db conn))))

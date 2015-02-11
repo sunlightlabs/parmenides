@@ -13,7 +13,7 @@
                               (zero? n))
                         (apply concat rst)
                         (breakout (dec n) rst)))]))
-          (into {}))))
+          (into (sorted-map)))))
 
 
 (defn prune [m]
@@ -36,9 +36,17 @@
 
 
 (defn pretty-datom [db datom]
-  [(.e datom)
-   (:db/ident (d/pull db '[:db/ident] (.a datom)))
-   (.v datom)])
+  (let [m (d/pull db '[:db/ident {:db/valueType [:db/ident :db/id]}] (.a datom))]
+    ;; (println datom)
+    ;; (println m)
+    ;; (println (=  :db.type/ref(:db/ident (:db/valueType m))))
+    ;; (println)
+    [(.e datom)
+     (:db/ident m)
+     (if (= (:db/ident (:db/valueType m))  :db.type/ref)
+       (:db/ident (d/pull db '[:db/ident] (.v datom)))
+       (.v datom))
+     (.tx datom)]))
 
 
 ;;Got tired of falling back to a map when I needed to multiple things
