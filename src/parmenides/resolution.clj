@@ -81,17 +81,36 @@
          :db/cardinality :db.cardinality/one
          :db.install/_attribute :db.part/db}]))
 
+   (dbfn :flood-ids [db match-key value]
+     (let [match (:db/id (d/entity db [match-key value]))
+           ids-records (d/q '[:find ?id ?record
+                              :in $ % ?match
+                              :where
+                              [?match :match/records ?record]
+                              [?record :soul/id ?id]]
+                            db
+                            []
+                            match)
+           max-id (->> ids-records
+                       (group-by first)
+                       (apply max-key (comp count val))
+                       key)
+           entities  (distinct (map second ids-records))
+           ]
+       (mapv #(vector :db/add % :soul/id max-id) entities)))
+
    (dbfn :expand-match [db cupid-db-id cupid-id value record]
-     (let [match-key (d/invoke db :cupid-id->keyword cupid-id)]
-       (if-let [match (:db/id (d/entity db [match-key value]))]
-         [{:db/id match
-           :match/records record}]
-         [{:db/id (d/tempid :db.part/user)
-           :match/cupid cupid-db-id
-           match-key value
-           :match/valid true
-           :match/records record}]
-         )))])
+     (let [match-key (d/invoke db :cupid-id->keyword cupid-id)
+           match {:db/id (d/tempid :db.part/user)
+                  :match/cupid cupid-db-id
+                  match-key value
+                  :match/valid true
+                  :match/records record}
+           new-db (:db-after (d/with db [match]))
+           data (vec (concat
+                      [match]
+                      (d/invoke new-db :flood-ids new-db  match-key value)))]
+       data))])
 
 
 (defn run-a-cupid [db {cupid-db-id :db/id
@@ -114,3 +133,8 @@
              (d/pull-many db
                           '[:db/id :cupid/attributes :cupid/id {:cupid/transform-combinator [:db/fn]}]
                           cupids))))
+
+(defn unleash-the-cupids!
+  [conn]
+  (doseq [data (hunt-for-soulmates (d/db conn))]
+    @(d/transact conn [data])))

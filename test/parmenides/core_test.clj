@@ -8,7 +8,7 @@
    [datomic.api :as d :refer [db q]]
    [parmenides.util-test :refer :all]
    [parmenides.util :refer :all]
-   [parmenides.resolution :refer [hunt-for-soulmates]]))
+   [parmenides.resolution :refer [unleash-the-cupids!]]))
 
 (defn print-db [dbc]
   (as-> dbc $
@@ -38,13 +38,16 @@
             db)
        0)})
 
-#_(defspec zero-entities 1
+(defspec zero-entities 1
   (prop/for-all
    []
    (let [conn (get-fresh-conn)]
-     (= 0 (number-of-souls (d/db conn))))))
+     (= {:number-of-souls 0
+         :number-of-records 0
+         :number-of-matches 0}
+        (characteristics (d/db conn))))))
 
-#_(defspec one-entity 10
+(defspec one-entity 100
   (prop/for-all
    [id-1 gen/int
     n (gen/such-that (complement zero?) gen/pos-int)]
@@ -53,10 +56,14 @@
                   (take n (repeatedly (fn [] {:db/id (d/tempid :db.part/user)
                                               :soul/id (str (d/squuid))
                                               :test/id-1 id-1}))))
-     @(d/transact conn (hunt-for-soulmates (d/db conn)))
-     (= 1 (number-of-souls (d/db conn))))))
+     (unleash-the-cupids! conn)
+     (= {:number-of-souls 1
+         :number-of-records n
+         :number-of-matches 1}
+        (characteristics (d/db conn))))))
 
-#_(one-entity)
+(gen/sample (gen/vector (gen/tuple gen/int gen/pos-int)))
+(one-entity)
 
 (let [conn (get-fresh-conn)
       id-1 10
@@ -65,9 +72,5 @@
                (take n (repeatedly (fn [] {:db/id (d/tempid :db.part/user)
                                            :soul/id (str (d/squuid))
                                            :test/id-1 id-1}))))
-  (doseq [data (hunt-for-soulmates (d/db conn))]
-    (println data)
-    @(d/transact conn [data])
-    )
-  (print-db (d/db conn))
-  )
+  (unleash-the-cupids! conn)
+  (characteristics (d/db conn)))
