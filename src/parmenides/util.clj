@@ -78,3 +78,6 @@
 ;; {:a [2 3}
 (update-in* {:a [{:id 1} {:id 2}]} [:a :all :id] inc)
 ;;{:a [{:id 2} {:id 3}]}
+
+(defn transpose [m]
+  (apply mapv vector m))

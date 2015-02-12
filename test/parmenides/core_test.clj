@@ -8,55 +8,13 @@
    [datomic.api :as d :refer [db q]]
    [parmenides.util-test :refer :all]
    [parmenides.util :refer :all]
-   [parmenides.resolution :refer [unleash-the-cupids!]]
-   [jordanlewis.data.union-find :refer :all]))
-
-(defn print-db [dbc]
-  (as-> dbc $
-        (d/datoms $ :eavt)
-        (seq $ )
-        (drop 215 $)
-        (map (partial pretty-datom dbc) $)
-        (group-by last $)
-        (update-in* $ [:all :all] (partial take 3))
-        (into (sorted-map) $)))
-
-(def or-zero #(or % 0))
-
-(defn number-of-souls [id-tuples]
-  (let [mapped-tuples
-        (map (partial map-indexed #(hash-map :schema %1 :val %2)) id-tuples)
-        uf       (apply union-find (apply concat mapped-tuples))]
-    (count (reduce (fn [uf [a b]] (union uf a b)) uf mapped-tuples))))
-
-(defn characteristics [db]
-  {:number-of-souls
-   (or-zero (d/q '[:find (count ?soul-id) .
-              :where [_ :soul/id ?soul-id]]
-            db))
-   :number-of-matches
-   (or-zero (d/q '[:find (count ?match) .
-              :where [?match :match/cupid _]]
-            db))
-   :number-of-records
-   (or-zero (d/q '[:find (count ?record) .
-              :where [?record :soul/id _]]
-            db))})
-
-(defspec no-souls-on-no-idss 1
-  (prop/for-all
-   []
-   (let [conn (get-fresh-conn)]
-     (= {:number-of-souls 0
-         :number-of-records 0
-         :number-of-matches 0}
-        (characteristics (d/db conn))))))
+   [parmenides.resolution :refer [unleash-the-cupids!]]))
 
 (defspec one-soul-on-one-id 10
   (prop/for-all
    [id-1 gen/int
     n (gen/such-that (complement zero?) gen/pos-int)]
-   (let [conn (get-fresh-conn)]
+   (let [conn (get-fresh-conn 1)]
      @(d/transact conn
                   (take n (repeatedly (fn [] {:db/id (d/tempid :db.part/user)
                                               :soul/id (str (d/squuid))
@@ -69,9 +27,8 @@
 
 (defspec many-souls-on-one-id 10
   (prop/for-all
-   [numbers (gen/vector (gen/tuple
-                         gen/int (gen/such-that (complement zero?) gen/pos-int)))]
-   (let [conn (get-fresh-conn)]
+   [numbers (gen/vector (gen/tuple gen/int gen/s-pos-int))]
+   (let [conn (get-fresh-conn 1)]
      (doseq [[id n] numbers]
        @(d/transact conn
                     (take n (repeatedly (fn [] {:db/id (d/tempid :db.part/user)
@@ -83,22 +40,40 @@
          :number-of-matches (count (distinct (map first numbers)))}
         (characteristics (d/db conn))))))
 
-(defspec one-soul-on-two-ids 40
+(defspec many-soul-on-two-ids 40
   (prop/for-all
    [ids (gen/vector (gen/tuple gen/int gen/int))]
-   ;(println ids)
-   (let [conn (get-fresh-conn)
-         outcome
-         {:number-of-souls (number-of-souls ids)
-          :number-of-matches (+ (count (distinct (map first ids)))
-                                (count (distinct (map second ids))))
-          :number-of-records (count ids)}]
+                                        ;(println ids)
+   (let [conn (get-fresh-conn 2)
+         outcome (derive-characteristics ids)]
      @(d/transact conn
                   (mapv (fn [[a b]]
                           {:db/id (d/tempid :db.part/user)
                            :soul/id (str (d/squuid))
                            :test/id-1 a
                            :test/id-2 b})
+                        ids))
+     (unleash-the-cupids! conn)
+     (= outcome
+        (characteristics (d/db conn))))))
+
+(defspec many-soul-on-many-ids 20
+  (prop/for-all
+   [ids (gen/not-empty (gen/vector (gen/not-empty (gen/bind gen/pos-int
+                                                             (partial gen/vector gen/int)))))]
+   (let [max-number-of-ids (apply max (map count ids))
+         conn (get-fresh-conn max-number-of-ids)
+         outcome (derive-characteristics ids)]
+     @(d/transact conn
+                  (mapv (fn [lst]
+                          (as-> lst $
+                                (map-indexed
+                                 #(vector (keyword (str "test/id-" (inc %1)))
+                                          %2)
+                                 $)
+                                (into {} $)
+                                (assoc $ :db/id (d/tempid :db.part/user)
+                                       :soul/id (str (d/squuid)))))
                         ids))
      (unleash-the-cupids! conn)
      (= outcome
