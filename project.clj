@@ -42,6 +42,7 @@
    [schema-contrib "0.1.3"]
    [org.clojure/data.json "0.2.5"]
    [org.clojure/math.combinatorics "0.0.8"]
+   [org.clojure/test.check "0.7.0"]
    [com.gfredericks/test.chuck "0.1.13"]]
 
   :main parmenides.main

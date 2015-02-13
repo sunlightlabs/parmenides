@@ -2,79 +2,57 @@
   (:require
    [clojure.test.check :as tc]
    [clojure.test.check.generators :as gen]
-   [com.gfredericks.test.chuck.properties :as prop']
    [clojure.test.check.properties :as prop]
    [clojure.test.check.clojure-test :as ct :refer (defspec)]
    [datomic.api :as d :refer [db q]]
    [parmenides.util-test :refer :all]
    [parmenides.util :refer :all]
-   [parmenides.resolution :refer [unleash-the-cupids!]]))
+   [parmenides.resolution :refer [unleash-the-cupids!]]
+   [com.gfredericks.test.chuck :as chuck]
+   [com.gfredericks.test.chuck.generators :as genc]
+   ))
 
-(defspec one-soul-on-one-id 10
-  (prop/for-all
-   [id-1 gen/int
-    n (gen/such-that (complement zero?) gen/pos-int)]
-   (let [conn (get-fresh-conn 1)]
-     @(d/transact conn
-                  (take n (repeatedly (fn [] {:db/id (d/tempid :db.part/user)
-                                              :soul/id (str (d/squuid))
-                                              :test/id-1 id-1}))))
-     (unleash-the-cupids! conn)
-     (= {:number-of-souls 1
-         :number-of-records n
-         :number-of-matches 1}
-        (characteristics (d/db conn))))))
+;;It used to generate a variable number of id's for each
+;;vector. Should it go back to doing that?
+(defn gen-id-tuples
+  ([] (gen-id-tuples 1))
+  ([min]
+     (genc/for [number-of-ids   gen/s-pos-int
+                number-of-vectors  gen/s-pos-int
+                ids (gen/vector (gen/vector gen/int number-of-ids)
+                                (max min number-of-vectors))]
+       ids)))
 
-(defspec many-souls-on-one-id 10
-  (prop/for-all
-   [numbers (gen/vector (gen/tuple gen/int gen/s-pos-int))]
-   (let [conn (get-fresh-conn 1)]
-     (doseq [[id n] numbers]
-       @(d/transact conn
-                    (take n (repeatedly (fn [] {:db/id (d/tempid :db.part/user)
-                                                :soul/id (str (d/squuid))
-                                                :test/id-1 id})))))
-     (unleash-the-cupids! conn)
-     (= {:number-of-souls (count (distinct (map first numbers)))
-         :number-of-records (reduce + (map second numbers))
-         :number-of-matches (count (distinct (map first numbers)))}
-        (characteristics (d/db conn))))))
+(def gen-id-tuples-with-pair-to-divorce
+  (genc/for [id-tuples (gen-id-tuples 2)
+             a (gen/choose 0 (dec (count id-tuples)))
+             b (gen/choose 0 (dec (count id-tuples)))
+             :when (not= a b)]
+    {:id-tuples id-tuples
+     :records-to-divorce [a b]}))
 
-(defspec many-soul-on-two-ids 40
+(gen/sample gen-id-tuples-with-pair-to-divorce)
+
+;;TODO: profile this and see if it can be speed up somehow
+(defspec many-soul-on-many-ids 10
   (prop/for-all
-   [ids (gen/vector (gen/tuple gen/int gen/int))]
-                                        ;(println ids)
-   (let [conn (get-fresh-conn 2)
+   [ids (gen-id-tuples)]
+   (println ids)
+   (let [max-number-of-ids (apply max (map count ids))
+         conn (get-fresh-conn max-number-of-ids)
          outcome (derive-characteristics ids)]
-     @(d/transact conn
-                  (mapv (fn [[a b]]
-                          {:db/id (d/tempid :db.part/user)
-                           :soul/id (str (d/squuid))
-                           :test/id-1 a
-                           :test/id-2 b})
-                        ids))
+     @(d/transact conn (mapv id-tuple->datom-map ids))
      (unleash-the-cupids! conn)
      (= outcome
         (characteristics (d/db conn))))))
 
-(defspec many-soul-on-many-ids 20
-  (prop/for-all
-   [ids (gen/not-empty (gen/vector (gen/not-empty (gen/bind gen/pos-int
-                                                             (partial gen/vector gen/int)))))]
+(defspec many-soul-on-many-ids-with-one-divorce 10
+  (prop/for-all [data (gen-id-tuples-with-pair-to-divorce)]
+   (println ids)
    (let [max-number-of-ids (apply max (map count ids))
          conn (get-fresh-conn max-number-of-ids)
          outcome (derive-characteristics ids)]
-     @(d/transact conn
-                  (mapv (fn [lst]
-                          (as-> lst $
-                                (map-indexed
-                                 #(vector (keyword (str "test/id-" (inc %1)))
-                                          %2)
-                                 $)
-                                (into {} $)
-                                (assoc $ :db/id (d/tempid :db.part/user)
-                                       :soul/id (str (d/squuid)))))
-                        ids))
+     @(d/transact conn (mapv id-tuple->datom-map ids))
      (unleash-the-cupids! conn)
      (= outcome
         (characteristics (d/db conn))))))

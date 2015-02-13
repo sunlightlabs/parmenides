@@ -8,7 +8,7 @@
 
 ;; Taken from simple-expectations
 ;; https://github.com/jaycfields/simple-expectations/blob/master/test/simple_expectations/core_test.clj
-(defrecord SimpleCheck []
+#_(defrecord SimpleCheck []
   CustomPred
   (expect-fn [e a] (:result a))
   (expected-message [e a str-e str-a] (format "%s of %s failures"
@@ -17,7 +17,7 @@
   (actual-message [e a str-e str-a] (format "fail: %s" (:fail a)))
   (message [e a str-e str-a] (format "shrunk: %s" (get-in a [:shrunk :smallest]))))
 
-(def checked (->SimpleCheck))
+#_(def checked (->SimpleCheck))
 
 (defn id-attr-and-cupid [id]
   (let [id-id (d/tempid :db.part/db)]
@@ -27,7 +27,9 @@
       :db/cardinality :db.cardinality/one
       :db.install/_attribute :db.part/db}
      [:new-cupid
-      {:cupid/attributes [id-id]}]]))
+      {:cupid/attributes [id-id]
+       :cupid/transform-combinator (nth (cycle [:identity-combinator :inc-combinator])
+                                        id)}]]))
 
 (defn get-fresh-conn [n]
   (let [url (str "datomic:mem://parmenides"  (d/squuid))
@@ -88,3 +90,13 @@
    (or-zero (d/q '[:find (count ?record) .
               :where [?record :soul/id _]]
             db))})
+
+(defn id-tuple->datom-map  [lst]
+  (as-> lst $
+        (map-indexed
+         #(vector (keyword (str "test/id-" (inc %1)))
+                  %2)
+         $)
+        (into {} $)
+        (assoc $ :db/id (d/tempid :db.part/user)
+               :soul/id (str (d/squuid)))))

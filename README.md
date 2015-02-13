@@ -4,3 +4,5 @@
 
 Parmenides is a Clojure project that (someday) will provide a way to
 link records across multiple data sources.
+
+[![Build Status](https://travis-ci.org/sunlightlabs/parmenides.svg?branch=master)](https://travis-ci.org/sunlightlabs/parmenides)

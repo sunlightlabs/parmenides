@@ -62,6 +62,7 @@
     :db.install/_attribute :db.part/db}
 
    (dbfn :identity-combinator [] identity)
+   (dbfn :inc-combinator [] inc)
 
    (dbfn :cupid-id->keyword [id] (keyword (str "match.cupid-" id "/result")))
 
