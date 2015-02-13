@@ -21,38 +21,33 @@
                 number-of-vectors  gen/s-pos-int
                 ids (gen/vector (gen/vector gen/int number-of-ids)
                                 (max min number-of-vectors))]
-       ids)))
+       (map (partial map-indexed id-tuple->kv ) ids))))
 
-(def gen-id-tuples-with-pair-to-divorce
+(def gen-id-tuples-with-match-to-invalidate
   (genc/for [id-tuples (gen-id-tuples 2)
-             a (gen/choose 0 (dec (count id-tuples)))
-             b (gen/choose 0 (dec (count id-tuples)))
-             :when (not= a b)]
+             match (gen/elements (distinct (apply concat id-tuples)))]
     {:id-tuples id-tuples
-     :records-to-divorce [a b]}))
-
-(gen/sample gen-id-tuples-with-pair-to-divorce)
+     :match-to-invalidate match}))
 
 ;;TODO: profile this and see if it can be speed up somehow
 (defspec many-soul-on-many-ids 10
   (prop/for-all
    [ids (gen-id-tuples)]
-   (println ids)
    (let [max-number-of-ids (apply max (map count ids))
          conn (get-fresh-conn max-number-of-ids)
          outcome (derive-characteristics ids)]
-     @(d/transact conn (mapv id-tuple->datom-map ids))
+     @(d/transact conn (mapv id-tuples->datom-map ids))
      (unleash-the-cupids! conn)
      (= outcome
         (characteristics (d/db conn))))))
 
-(defspec many-soul-on-many-ids-with-one-divorce 10
+#_(defspec many-soul-on-many-ids-with-one-divorce 10
   (prop/for-all [data (gen-id-tuples-with-pair-to-divorce)]
-   (println ids)
+                (println ids)
    (let [max-number-of-ids (apply max (map count ids))
          conn (get-fresh-conn max-number-of-ids)
          outcome (derive-characteristics ids)]
      @(d/transact conn (mapv id-tuple->datom-map ids))
-     (unleash-the-cupids! conn)
+     (unleash-the-cupids! con)
      (= outcome
         (characteristics (d/db conn))))))

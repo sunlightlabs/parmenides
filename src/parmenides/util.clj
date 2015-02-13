@@ -81,3 +81,13 @@
 
 (defn transpose [m]
   (apply mapv vector m))
+
+(defn print-db [dbc]
+  (as-> dbc $
+        (d/datoms $ :eavt)
+        (seq $ )
+        (drop 215 $)
+        (map (partial pretty-datom dbc) $)
+        (group-by last $)
+        (update-in* $ [:all :all] (partial take 3))
+        (into (sorted-map) $)))
