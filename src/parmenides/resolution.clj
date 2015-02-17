@@ -86,7 +86,7 @@
          :db/cardinality :db.cardinality/one
          :db.install/_attribute :db.part/db}]))
 
-   (dbfn :propogate-plurality-id [db match-key value]
+   (dbfn :propagate-plurality-id [db match-key value]
      (let [match (:db/id (d/entity db [match-key value]))
            ids-records (d/q '[:find ?id ?record
                               :in $ % ?match
@@ -118,7 +118,7 @@
            new-db (:db-after (d/with db [match]))
            data (vec (concat
                       [match]
-                      (d/invoke new-db :propogate-plurality-id
+                      (d/invoke new-db :propagate-plurality-id
                                 new-db  match-key value)))]
        data))])
 

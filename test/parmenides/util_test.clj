@@ -17,14 +17,14 @@
        :cupid/transform-combinator (nth (cycle [:identity-combinator :inc-combinator])
                                         id)}]]))
 
-(defn get-fresh-conn
+(defn get-fresh-db
   [n]
   (let [url (str "datomic:mem://parmenides"  (d/squuid))
         conn (do (d/create-database url)
                  (d/connect url))]
     @(d/transact conn attributes)
     @(d/transact conn (vec (mapcat id-attr-and-cupid (range 0 n))))
-    conn))
+    (d/db conn)))
 
 (def or-zero #(or % 0))
 
@@ -43,11 +43,9 @@
   (map (partial map-indexed id-tuple->kv) id-tuples))
 
 (defn number-of-souls
-  [id-tuples removed-matches]
-  (println "id-tuples" id-tuples)
-  (println "removed-matches" removed-matches)
+  [datoms removed-matches]
   (let [mapped-tuples  (map (partial filter (complement (set removed-matches)))
-                            id-tuples)
+                            datoms)
         independent-uf (apply union-find (apply concat mapped-tuples))
         merged-uf
         (reduce union-lst independent-uf  mapped-tuples)]
@@ -55,15 +53,15 @@
        (count (filter empty? mapped-tuples)))))
 
 (defn number-of-matches
-  [id-tuples]
-  (count (distinct (apply concat (project-ids id-tuples)))))
+  [datoms]
+  (count (filter #(= (namespace (first %)) "test") (distinct (apply concat datoms)))))
 
 (defn derive-characteristics
-  ([ids] (derive-characteristics ids []))
-  ([ids removed-matches]
-     {:number-of-souls (number-of-souls ids removed-matches)
-      :number-of-matches (number-of-matches ids)
-      :number-of-records (count ids)}))
+  ([datoms] (derive-characteristics datoms []))
+  ([datoms removed-matches]
+     {:number-of-souls (number-of-souls datoms removed-matches)
+      :number-of-matches (number-of-matches datoms)
+      :number-of-records (count datoms)}))
 
 (defn characteristics
   [db]
@@ -85,3 +83,6 @@
   (assoc (into {} lst)
     :db/id (d/tempid :db.part/user)
     :soul/id (str (d/squuid))))
+
+(def id-tuple->datom-map
+  (comp id-tuples->datom-map (partial map-indexed id-tuple->kv )))
