@@ -43,22 +43,27 @@
   (map (partial map-indexed id-tuple->kv) id-tuples))
 
 (defn number-of-souls
-  [id-tuples]
-  (let [mapped-tuples (project-ids id-tuples)
+  [id-tuples removed-matches]
+  (println "id-tuples" id-tuples)
+  (println "removed-matches" removed-matches)
+  (let [mapped-tuples  (map (partial filter (complement (set removed-matches)))
+                            id-tuples)
         independent-uf (apply union-find (apply concat mapped-tuples))
         merged-uf
         (reduce union-lst independent-uf  mapped-tuples)]
-    (count merged-uf)))
+    (+ (count merged-uf)
+       (count (filter empty? mapped-tuples)))))
 
 (defn number-of-matches
   [id-tuples]
   (count (distinct (apply concat (project-ids id-tuples)))))
 
 (defn derive-characteristics
-  [ids]
-  {:number-of-souls (number-of-souls ids)
-   :number-of-matches (number-of-matches ids)
-   :number-of-records (count ids)})
+  ([ids] (derive-characteristics ids []))
+  ([ids removed-matches]
+     {:number-of-souls (number-of-souls ids removed-matches)
+      :number-of-matches (number-of-matches ids)
+      :number-of-records (count ids)}))
 
 (defn characteristics
   [db]

@@ -44,6 +44,13 @@
     :db.install/_attribute :db.part/db}
 
    {:db/id #db/id[:db.part/db]
+    :db/ident :match/id
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/index true
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
     :db/ident :match/cupid
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/one
@@ -139,5 +146,6 @@
 
 (defn unleash-the-cupids!
   [conn]
-  (doseq [data (hunt-for-soulmates (d/db conn))]
-    @(d/transact conn [data])))
+  (doall
+   (map (comp deref #(d/transact conn [%]))
+        (hunt-for-soulmates (d/db conn)))))
