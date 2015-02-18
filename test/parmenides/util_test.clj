@@ -3,7 +3,8 @@
    [jordanlewis.data.union-find :refer :all]
    [datomic.api :as d :refer [db q]]
    [parmenides.util :refer :all]
-   [parmenides.resolution :refer [attributes dbfn]]))
+   [parmenides.resolution :refer [attributes dbfn]]
+   [clojure.pprint :refer [pprint]]))
 
 (defn id-attr-and-cupid [id]
   (let [id-id (d/tempid :db.part/db)]
@@ -43,9 +44,9 @@
   (map (partial map-indexed id-tuple->kv) id-tuples))
 
 (defn number-of-souls
-  [datoms removed-matches]
+  [records removed-matches]
   (let [mapped-tuples  (map (partial filter (complement (set removed-matches)))
-                            datoms)
+                            records)
         independent-uf (apply union-find (apply concat mapped-tuples))
         merged-uf
         (reduce union-lst independent-uf  mapped-tuples)]
@@ -53,30 +54,43 @@
        (count (filter empty? mapped-tuples)))))
 
 (defn number-of-matches
-  [datoms]
-  (count (filter #(= (namespace (first %)) "test") (distinct (apply concat datoms)))))
+  [records removed-matches]
+  (let [number-of-added (count (filter #(= (namespace (first %)) "test") (distinct (apply concat records))))
+        number-of-removed (count (distinct removed-matches))]
+    {:valid (- number-of-added number-of-removed)
+     :invalid number-of-removed}))
 
 (defn derive-characteristics
-  ([datoms] (derive-characteristics datoms []))
-  ([datoms removed-matches]
-     {:number-of-souls (number-of-souls datoms removed-matches)
-      :number-of-matches (number-of-matches datoms)
-      :number-of-records (count datoms)}))
+  ([records] (derive-characteristics records []))
+  ([records removed-matches]
+     {:number-of-souls (number-of-souls records removed-matches)
+      :number-of-matches (number-of-matches records removed-matches)
+      :number-of-records (count records)}))
 
 (defn characteristics
   [db]
   {:number-of-souls
    (or-zero (d/q '[:find (count ?soul-id) .
-              :where [_ :soul/id ?soul-id]]
-            db))
+                   :where [_ :soul/id ?soul-id]]
+                 db))
    :number-of-matches
-   (or-zero (d/q '[:find (count ?match) .
-              :where [?match :match/cupid _]]
-            db))
+   {:valid
+    (or-zero (d/q '[:find (count ?match) .
+                    :where
+                    [?match :match/cupid _]
+                    [?match :match/valid true]]
+                  db))
+    :invalid
+    (or-zero (d/q '[:find (count ?match) .
+                    :where
+                    [?match :match/cupid _]
+                    [?match :match/valid false]]
+                  db))}
+
    :number-of-records
    (or-zero (d/q '[:find (count ?record) .
-              :where [?record :soul/id _]]
-            db))})
+                   :where [?record :soul/id _]]
+                 db))})
 
 (defn id-tuples->datom-map
   [lst]

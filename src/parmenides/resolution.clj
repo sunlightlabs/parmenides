@@ -47,7 +47,7 @@
     :db/ident :match/id
     :db/valueType :db.type/string
     :db/cardinality :db.cardinality/one
-    :db/index true
+    :db/unique :db.unique/identity
     :db.install/_attribute :db.part/db}
 
    {:db/id #db/id[:db.part/db]
@@ -86,7 +86,7 @@
          :db/cardinality :db.cardinality/one
          :db.install/_attribute :db.part/db}]))
 
-   (dbfn :propagate-plurality-id [db match-key value]
+   (dbfn :propagate-plurality-id [db match-key value disallowed-values]
      (let [match (:db/id (d/entity db [match-key value]))
            ids-records (d/q '[:find ?id ?record
                               :in $ % ?match
@@ -101,10 +101,14 @@
                                [?new-match :match/records ?in-between]
                                (affected-records ?new-match ?record)]]
                             match)
-           max-id (->> ids-records
-                       (group-by first)
-                       (apply max-key (comp count val))
-                       key)
+           filtered-ids-records
+           (filter (comp (complement (set disallowed-values)) second)
+                      ids-records)
+           id-structure (->> filtered-ids-records
+                       (group-by first))
+           max-id (if (not (empty? id-structure))
+                    (key (apply max-key (comp count val) id-structure))
+                    (str (d/squuid)))
            entities  (distinct (map second ids-records))]
        (mapv #(vector :db/add % :soul/id max-id) entities)))
 
@@ -112,6 +116,7 @@
      (let [match-key (d/invoke db :cupid-id->keyword cupid-id)
            match {:db/id (d/tempid :db.part/user)
                   :match/cupid cupid-db-id
+                  :match/id  (str (d/squuid))
                   match-key value
                   :match/valid true
                   :match/records record}
@@ -119,8 +124,15 @@
            data (vec (concat
                       [match]
                       (d/invoke new-db :propagate-plurality-id
-                                new-db  match-key value)))]
-       data))])
+                                new-db  match-key value [])))]
+       data))
+
+   (dbfn :invalidate-match [db match-id]
+     (let []
+
+       [{:db/id (d/tempid :db.part/user)
+          :match/id match-id
+          :match/valid false}]))])
 
 
 (defn run-a-cupid [db {cupid-db-id :db/id
