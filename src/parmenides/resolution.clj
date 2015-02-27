@@ -1,4 +1,6 @@
 (ns parmenides.resolution
+  {:squiggly {:checkers [:kibit :eastwood :typed]
+              :eastwood-exclude-linters [:unlimited-use]}}
   (:require [datomic.api :as d]
             [clojure.pprint :refer [pprint]]))
 
@@ -34,7 +36,7 @@
    {:db/id #db/id[:db.part/db]
     :db/ident :cupid/attributes
     :db/valueType :db.type/ref
-    :db/cardinality :db.cardinality/many
+    :db/cardinality :db.cardinality/many 
     :db.install/_attribute :db.part/db}
 
    {:db/id #db/id[:db.part/db]
@@ -161,3 +163,9 @@
   (doall
    (map (comp deref #(d/transact conn [%]))
         (hunt-for-soulmates (d/db conn)))))
+
+;; Substitute in Local Variables region to disable one or more checkers.
+;; flycheck-disabled-checkers: (clojure-cider-typed clojure-cider-kibit clojure-cider-eastwood)
+;; Local Variables:
+;; flycheck-disabled-checkers: ()
+;; End:

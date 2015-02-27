@@ -43,6 +43,7 @@
    [org.clojure/data.json "0.2.5"]
    [org.clojure/math.combinatorics "0.0.8"]
    [org.clojure/test.check "0.7.0"]
+   
    [com.gfredericks/test.chuck "0.1.15"]]
 
   :main parmenides.main
@@ -51,7 +52,8 @@
                  :welcome (println "Type (dev) to start")}
 
   :aliases {"gen" ["run" "-m" "parmenides.generate"]}
-
+  :plugins [[lein-environ "1.0.0"]]
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.5"]
                                   [expectations "2.0.9"]]
-                   :source-paths ["dev"]}})
+                   :source-paths ["dev"]
+                   }})
