@@ -1,4 +1,4 @@
-{"dataset_name":"My Super Messy Dataset",
+{"dataset_description":"DATASET_DESCRIPTION",
  "dataset_return_endpoint": "RETURN_URL",
  "dataset_maintainer_email": "MAINTAINER_EMAIL",
  "dataset_maintainer_name": "MAINTAINER_NAME"}
