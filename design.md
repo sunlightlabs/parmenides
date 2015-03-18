@@ -74,17 +74,51 @@ Data is messy. This can mean a variety of things, but mostly it means that each
 data source requires a fair amount of work before record linkage techniques can
 effectively be applied.
 
-### Changing data sources
-
 ### Multiple data consumers
 
-### Network data
+As the data gets more voluminous and the reconciliation techniques get better,
+there will be a greater demand for the ability to mix and match different sets
+of data. This means that Parmenides should support pulling down any of the silos
+of data at any time. 
+
+### Network/graph data
+
+Organizations and people are well represented by graphs. Graphs don't play well
+with tabular data stores like SQL yet and so special databases/program must be
+used to work wit the graphs. 
 
 ### Diminishing returns from techniques
 
+Exact stringing matching cannot be beat in terms of the ease of use, reliability
+of results and speed. Every other technique provides orders of magnitude less
+resolution ability if you do exact string matching first. The constraint here
+then is that it might be better to be able to scale up exact string matching to
+large numbers of records than to try and scale up complicated but more effective
+techniques for a smaller number of records.
+
 ### Virtualization hasn't been shown to work
 
+Entity resolution and record linkage techniques have weird data access patterns
+that aren't terribly predictable. Industry folks have found that it is easier to
+load all the data into one central repository (materializatoin) than it is for
+one central program to reach out to dozens of different databases
+(virtualization) during the record linkage process. Storage is cheap, but
+developer time isn't. 
+
 ### Ephemeral datasets 
+
+[TODO] Allows for continuous searching.
+
+### Secretive industry / Murky past
+
+After 9/11, the industry went dark and became much less open (or so I've
+heard). Anti-terrorism efforts like Palantir and Infoglide (TSA) are under
+similar constraints as we are (with some modifications like privacy, more
+volume, and hard real time guarantees) trying to solve the same problem.
+
+### Base Rate Fallacy
+
+[TODO] More info for this
 
 ## Design abstractions
 
